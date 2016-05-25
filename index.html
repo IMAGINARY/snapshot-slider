@@ -28,9 +28,28 @@
             var slide = document.createElement("DIV");
             slide.classList.add("swiper-slide");
             slide.innerHTML = "Slide " + i + ":<br>";
+            slide.innerHTML += "<a href=\"javascript:show( " + i + " )\">Show</a><br>";
+            slide.innerHTML += "<a href=\"javascript:mail( " + i + " )\">Mail</a><br>";
+            slide.innerHTML += "<a href=\"javascript:print( " + i + " )\">Print</a>";
             swiper_wrapper.appendChild(slide);
         }
     </script>
+
+    <div id="showPdf">
+        Show PDF
+        <a href="javascript:slide()">Hide</a>
+    </div>
+
+    <div id="printPdf">
+        Print PDF
+        <a href="javascript:slide()">Hide</a>
+    </div>
+
+    <div id="sendEmail">
+        Send E-Mail
+        <a href="javascript:slide()">Hide</a>
+    </div>
+
 
     <!-- load jQuery and Swiper -->
     <script>
@@ -51,6 +70,26 @@
                 spaceBetween: 30,
             });
         });
+    </script>
+
+    <script>
+        function slide() {
+            $('body > div').hide().filter('#slider').show();
+        }
+
+        function show(which) {
+            $('body > div').hide().filter('#showPdf').show();
+        }
+
+        function mail(which) {
+            $('body > div').hide().filter('#sendEmail').show();
+        }
+
+        function print(which) {
+            $('body > div').hide().filter('#printPdf').show();
+        }
+
+        slide();
     </script>
 </body>
 
