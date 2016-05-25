@@ -1,22 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <meta charset="utf-8">
+    <title>Swiper demo</title>
+    <!-- Link Swiper's CSS -->
+    <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
+    <link rel="stylesheet" href="main.css">
+    <script src="config.js"></script>
 </head>
 
 <body>
-    <h1>Hello World!</h1> We are using node
+
+    <!-- Swiper -->
+    <div class="swiper-container" id="slider">
+        <div class="swiper-wrapper">
+        </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+    </div>
+
+    <!-- load slide contents from config -->
     <script>
-        document.write(process.versions.node)
-    </script>, Chromium
+        var swiper_wrapper = document.getElementsByClassName("swiper-wrapper")[0];
+        for (var i = 0; i < config.length; ++i) {
+            var slide = document.createElement("DIV");
+            slide.classList.add("swiper-slide");
+            slide.innerHTML = "Slide " + i + ":<br>";
+            swiper_wrapper.appendChild(slide);
+        }
+    </script>
+
+    <!-- load jQuery and Swiper -->
     <script>
-        document.write(process.versions.chrome)
-    </script>, and Electron
+        window.$ = window.jQuery = require("jquery");
+        require("swiper");
+    </script>
+
+    <!-- Initialize Swiper -->
     <script>
-        document.write(process.versions.electron)
-    </script>.
+        $(document).ready(function() {
+            //initialize swiper when document ready
+            var swiper = new Swiper('.swiper-container', {
+                loop: true,
+                pagination: '.swiper-pagination',
+                nextButton: '.swiper-button-next',
+                prevButton: '.swiper-button-prev',
+                paginationClickable: true,
+                spaceBetween: 30,
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -23,6 +23,8 @@
     },
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "devDependencies": {
-        "electron-prebuilt": "^0.37.0"
+        "electron-prebuilt": "^0.37.0",
+        "jquery": "^2.2.4",
+        "swiper": "^3.3.1"
     }
 }
