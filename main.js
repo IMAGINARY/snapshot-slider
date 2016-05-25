@@ -3,6 +3,7 @@
 const electron = require('electron');
 // Module to control application life.
 const app = electron.app;
+app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 

@@ -38,6 +38,7 @@
     <div id="showPdf">
         Show PDF
         <a href="javascript:slide()">Hide</a>
+        <div id="pdfViewer"></div>
     </div>
 
     <div id="printPdf">
@@ -51,10 +52,11 @@
     </div>
 
 
-    <!-- load jQuery and Swiper -->
+    <!-- load jQuery, Swiper and PdfViewer -->
     <script>
         window.$ = window.jQuery = require("jquery");
         require("swiper");
+        window.PdfViewer = require("pdfviewer");
     </script>
 
     <!-- Initialize Swiper -->
@@ -78,7 +80,15 @@
         }
 
         function show(which) {
+            console.log(config);
             $('body > div').hide().filter('#showPdf').show();
+            new PdfViewer({
+                pdfUrl: config[which].pdfUrl,
+                staticHost: 'node_modules/pdfviewer/dist/index.html',
+                onerror: function(err) {
+                    console.error('PdfViewer', err);
+                }
+            }).embed(document.getElementById('pdfViewer'));
         }
 
         function mail(which) {
