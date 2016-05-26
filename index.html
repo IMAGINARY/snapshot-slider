@@ -32,24 +32,25 @@
 
     <!-- load slide contents from config -->
     <script>
-        var swiper_wrapper = document.getElementsByClassName("swiper-wrapper")[0];
-        for (var i = 0; i < config.length; ++i) {
-            var slide = document.createElement("DIV");
-            slide.classList.add("swiper-slide");
-            slide.innerHTML = "Slide " + i + ":<br>";
-            slide.innerHTML += "<a href=\"javascript:show( " + i + " )\">Show</a><br>";
-            slide.innerHTML += "<a href=\"javascript:mail( " + i + " )\">Mail</a><br>";
-            slide.innerHTML += "<a href=\"javascript:print( " + i + " )\">Print</a>";
-            slide.innerHTML += "<div id=\"qrcode" + i + "\"></div>";
-            swiper_wrapper.appendChild(slide);
-            new QRCode(
-                "qrcode" + i, {
-                    text: config[i].websiteUrl,
-                    width: 128,
-                    height: 128
-                }
-            );
-
+        function initSlides() {
+            var swiper_wrapper = document.getElementsByClassName("swiper-wrapper")[0];
+            for (var i = 0; i < config.length; ++i) {
+                var slide = document.createElement("DIV");
+                slide.classList.add("swiper-slide");
+                slide.innerHTML = "Slide " + i + ":<br>";
+                slide.innerHTML += "<a href=\"javascript:show( " + i + " )\">Show</a><br>";
+                slide.innerHTML += "<a href=\"javascript:mail( " + i + " )\">Mail</a><br>";
+                slide.innerHTML += "<a href=\"javascript:print( " + i + " )\">Print</a>";
+                slide.innerHTML += "<div id=\"qrcode" + i + "\"></div>";
+                swiper_wrapper.appendChild(slide);
+                new QRCode(
+                    "qrcode" + i, {
+                        text: config[i].websiteUrl,
+                        width: 128,
+                        height: 128
+                    }
+                );
+            }
         }
     </script>
 
@@ -69,10 +70,8 @@
         <a href="javascript:slide()">Hide</a>
     </div>
 
-    <!-- Initialize Swiper -->
     <script>
-        $(document).ready(function() {
-            //initialize swiper when document ready
+        function initSlider() {
             var swiper = new Swiper('.swiper-container', {
                 loop: true,
                 pagination: '.swiper-pagination',
@@ -81,10 +80,34 @@
                 paginationClickable: true,
                 spaceBetween: 30,
             });
-        });
-    </script>
+        }
 
-    <script>
+        var path = require('path');
+        var childProcess = require('child_process');
+
+        function fileExists(filePath) {
+            try {
+                return fs.statSync(filePath).isFile();
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function initCache() {
+            for (var i = 0; i < config.length; ++i) {
+                var c = config[i];
+                var basename = path.basename(c.pdfUrl, ".pdf");
+                c.cachedPdf = "content/" + basename + ".pdf";
+                c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
+                c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
+                if (!fileExists(c.cachedPdf)) {
+                    console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
+                        encoding: 'utf-8'
+                    }));
+                }
+            }
+        }
+
         function slide() {
             $('body > div').hide().filter('#slider').show();
         }
@@ -93,7 +116,7 @@
             console.log(config);
             $('body > div').hide().filter('#showPdf').show();
             new PdfViewer({
-                pdfUrl: config[which].pdfUrl,
+                pdfUrl: path.resolve(config[which].cached2on1Pdf),
                 staticHost: 'node_modules/pdfviewer/dist/index.html',
                 onerror: function(err) {
                     console.error('PdfViewer', err);
@@ -109,7 +132,12 @@
             $('body > div').hide().filter('#printPdf').show();
         }
 
-        slide();
+        $(document).ready(function() {
+            initCache();
+            initSlides();
+            initSlider();
+            slide();
+        });
     </script>
 </body>
 
