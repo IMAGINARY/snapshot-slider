@@ -2,6 +2,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 DIRNAME="content"
 BASENAME=$(basename -s '.pdf' $1)
+mkdir -p "$DIRNAME"
 if [ ! -f "$DIRNAME/$BASENAME.pdf" ]; then
     >&2 echo "Downloading $1 to $DIRNAME/$BASENAME.pdf"
     wget -O "$DIRNAME/$BASENAME.pdf" "$1"
