@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="main.css">
     <script src="config.js"></script>
+
+    <!-- load jQuery, Swiper and PdfViewer -->
+    <script>
+        window.$ = window.jQuery = require("jquery");
+        require("swiper");
+        window.PdfViewer = require("pdfviewer");
+    </script>
+    <!-- load qrcode.js -->
+    <script src="node_modules/qrcode-js-package/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -31,7 +40,16 @@
             slide.innerHTML += "<a href=\"javascript:show( " + i + " )\">Show</a><br>";
             slide.innerHTML += "<a href=\"javascript:mail( " + i + " )\">Mail</a><br>";
             slide.innerHTML += "<a href=\"javascript:print( " + i + " )\">Print</a>";
+            slide.innerHTML += "<div id=\"qrcode" + i + "\"></div>";
             swiper_wrapper.appendChild(slide);
+            new QRCode(
+                "qrcode" + i, {
+                    text: config[i].websiteUrl,
+                    width: 128,
+                    height: 128
+                }
+            );
+
         }
     </script>
 
@@ -50,14 +68,6 @@
         Send E-Mail
         <a href="javascript:slide()">Hide</a>
     </div>
-
-
-    <!-- load jQuery, Swiper and PdfViewer -->
-    <script>
-        window.$ = window.jQuery = require("jquery");
-        require("swiper");
-        window.PdfViewer = require("pdfviewer");
-    </script>
 
     <!-- Initialize Swiper -->
     <script>
