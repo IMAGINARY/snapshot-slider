@@ -45,9 +45,8 @@
                 swiper_wrapper.appendChild(slide);
                 new QRCode(
                     "qrcode" + i, {
-                        text: config[i].websiteUrl,
-                        width: 128,
-                        height: 128
+                        text: config[i].shortWebsiteUrl,
+                        useSVG: true
                     }
                 );
             }
