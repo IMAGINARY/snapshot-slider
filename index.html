@@ -62,6 +62,7 @@
     <div id="printPdf">
         Print PDF
         <a href="javascript:switchToSlider()">Hide</a>
+        <a id="printButton" href="">Print</a>
     </div>
 
     <div id="sendEmail">
@@ -128,7 +129,15 @@
         }
 
         function switchToPrintMode(which) {
+            $('#printButton').attr('href', 'javascript:print(' + which + ')');
             $('body > div').hide().filter('#printPdf').show();
+        }
+
+        function print(which) {
+            console.log('printing ' + config[which].cachedBookletPdf);
+            console.log(childProcess.execSync('lp -o landscape -o media=a4 -o sides=two-sided-short-edge ' + config[which].cachedBookletPdf, {
+                encoding: 'utf-8'
+            }));
         }
 
         $(document).ready(function() {
