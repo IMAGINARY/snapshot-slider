@@ -38,9 +38,9 @@
                 var slide = document.createElement("DIV");
                 slide.classList.add("swiper-slide");
                 slide.innerHTML = "Slide " + i + ":<br>";
-                slide.innerHTML += "<a href=\"javascript:show( " + i + " )\">Show</a><br>";
-                slide.innerHTML += "<a href=\"javascript:mail( " + i + " )\">Mail</a><br>";
-                slide.innerHTML += "<a href=\"javascript:print( " + i + " )\">Print</a>";
+                slide.innerHTML += "<a href=\"javascript:switchToViewer( " + i + " )\">Show</a><br>";
+                slide.innerHTML += "<a href=\"javascript:switchToMailMode( " + i + " )\">Mail</a><br>";
+                slide.innerHTML += "<a href=\"javascript:switchToPrintMode( " + i + " )\">Print</a>";
                 slide.innerHTML += "<div id=\"qrcode" + i + "\"></div>";
                 swiper_wrapper.appendChild(slide);
                 new QRCode(
@@ -55,18 +55,18 @@
 
     <div id="showPdf">
         Show PDF
-        <a href="javascript:slide()">Hide</a>
+        <a href="javascript:switchToSlider()">Hide</a>
         <div id="pdfViewer"></div>
     </div>
 
     <div id="printPdf">
         Print PDF
-        <a href="javascript:slide()">Hide</a>
+        <a href="javascript:switchToSlider()">Hide</a>
     </div>
 
     <div id="sendEmail">
         Send E-Mail
-        <a href="javascript:slide()">Hide</a>
+        <a href="javascript:switchToSlider()">Hide</a>
     </div>
 
     <script>
@@ -107,11 +107,11 @@
             }
         }
 
-        function slide() {
+        function switchToSlider() {
             $('body > div').hide().filter('#slider').show();
         }
 
-        function show(which) {
+        function switchToViewer(which) {
             console.log(config);
             $('body > div').hide().filter('#showPdf').show();
             new PdfViewer({
@@ -123,11 +123,11 @@
             }).embed(document.getElementById('pdfViewer'));
         }
 
-        function mail(which) {
+        function switchToMailMode(which) {
             $('body > div').hide().filter('#sendEmail').show();
         }
 
-        function print(which) {
+        function switchToPrintMode(which) {
             $('body > div').hide().filter('#printPdf').show();
         }
 
@@ -135,7 +135,7 @@
             initCache();
             initSlides();
             initSlider();
-            slide();
+            switchToSlider();
         });
     </script>
 </body>
