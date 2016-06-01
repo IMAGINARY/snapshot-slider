@@ -8,12 +8,29 @@
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="main.css">
     <script src="config.js"></script>
+    <script src="smtp_config.js"></script>
 
-    <!-- load jQuery, Swiper and PdfViewer -->
+    <!-- load some node.js packages -->
     <script>
         window.$ = window.jQuery = require("jquery");
         require("swiper");
         window.PdfViewer = require("pdfviewer");
+
+        window.nodemailer = require('nodemailer');
+        window.htmlToText = require('html-to-text');
+        window.format = require('string-template');
+
+        // create reusable transporter object using the default SMTP transport
+        window.transporter = nodemailer.createTransport(smtpConfig);
+
+        // verify connection configuration
+        transporter.verify(function(error, success) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Server is ready to take our messages');
+            }
+        });
     </script>
     <!-- load qrcode.js -->
     <script src="node_modules/qrcode-js-package/qrcode.min.js"></script>
@@ -68,6 +85,15 @@
     <div id="sendEmail">
         Send E-Mail
         <a href="javascript:switchToSlider()">Hide</a>
+        <a id="mailButton" href="">Mail</a>
+        <p>
+            Name:
+            <input id="recipientName" width="100" />
+        </p>
+        <p>
+            Address:
+            <input id="recipientAddress" width="100" />
+        </p>
     </div>
 
     <script>
@@ -125,6 +151,7 @@
         }
 
         function switchToMailMode(which) {
+            $('#mailButton').attr('href', 'javascript:email(' + which + ')');
             $('body > div').hide().filter('#sendEmail').show();
         }
 
@@ -138,6 +165,52 @@
             console.log(childProcess.execSync('lp -o landscape -o media=a4 -o sides=two-sided-short-edge ' + config[which].cachedBookletPdf, {
                 encoding: 'utf-8'
             }));
+        }
+
+        function email(which) {
+            var c = config[which];
+
+            const recipientName = document.getElementById('recipientName').value;
+            const recipientAddress = document.getElementById('recipientAddress').value;
+
+            console.log('mailing ' + c.websiteUrl + ' to ' + recipientAddress);
+            console.log(smtpConfig);
+
+            const substUrls = function(s) {
+                return format(s, {
+                    websiteUrl: c.websiteUrl,
+                    pdfUrl: c.pdfUrl,
+                    defaultRecipientName: recipientName != '' ? recipientName : mailConfig.defaultRecipientName
+                });
+            };
+
+            var formattedHtml = substUrls(mailConfig.html);
+            var formattedText = typeof mailConfig.text != 'undefined' ? substUrls(mailConfig.text) : htmlToText.fromString(formattedHtml, {
+                hideLinkHrefIfSameAsText: true
+            });
+
+            // setup e-mail data with unicode symbols
+            var mailOptions = {
+                from: {
+                    name: mailConfig.senderName,
+                    address: mailConfig.senderAddress
+                }, // sender address
+                to: recipientName == '' ? recipientAddress : {
+                    name: recipientName,
+                    address: recipientAddress
+                }, // list of receivers
+                subject: mailConfig.subject, // subject line
+                text: formattedText, // plaintext body
+                html: formattedHtml, // html body
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, function(error, info) {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('Message sent: ' + info.response);
+            });
         }
 
         $(document).ready(function() {
