@@ -47,8 +47,57 @@
         </div>
     </div>
 
-    <!-- load slide contents from config -->
+    <div id="sendEmail">
+        Send E-Mail
+        <a href="javascript:switchToSlider()">Hide</a>
+        <a id="mailButton" href="">Mail</a>
+        <p>
+            Name:
+            <input id="recipientName" width="100" />
+        </p>
+        <p>
+            Address:
+            <input id="recipientAddress" width="100" />
+        </p>
+    </div>
+
     <script>
+        var swiper;
+
+        function fileExists(filePath) {
+            try {
+                return fs.statSync(filePath).isFile();
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function initCache() {
+            for (var i = 0; i < config.length; ++i) {
+                var c = config[i];
+                var basename = path.basename(c.pdfUrl, ".pdf");
+                c.cachedPdf = "content/" + basename + ".pdf";
+                c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
+                c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
+                if (!fileExists(c.cachedPdf)) {
+                    console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
+                        encoding: 'utf-8'
+                    }));
+                }
+            }
+        }
+
+        function initSlider() {
+            swiper = new Swiper('.swiper-container', {
+                spaceBetween: 50,
+                freeMode: true,
+                slidesPerView: 'auto',
+                mousewheelControl: true,
+                mousewheelForceToAxis: true,
+                keyboardControl: true
+            });
+        }
+
         function initSlides() {
             var swiper_wrapper = document.getElementsByClassName("swiper-wrapper")[0];
             for (var i = 0; i < config.length; ++i) {
@@ -77,59 +126,6 @@
                         console.error('PdfViewer', err);
                     }
                 }).embed(document.getElementById('pdfViewer' + i));
-            }
-        }
-    </script>
-
-    <div id="sendEmail">
-        Send E-Mail
-        <a href="javascript:switchToSlider()">Hide</a>
-        <a id="mailButton" href="">Mail</a>
-        <p>
-            Name:
-            <input id="recipientName" width="100" />
-        </p>
-        <p>
-            Address:
-            <input id="recipientAddress" width="100" />
-        </p>
-    </div>
-
-    <script>
-        var swiper;
-
-        function initSlider() {
-            swiper = new Swiper('.swiper-container', {
-                spaceBetween: 50,
-                freeMode: true,
-                slidesPerView: 'auto',
-                mousewheelControl: true,
-                mousewheelForceToAxis: true,
-                keyboardControl: true
-            });
-        }
-
-
-        function fileExists(filePath) {
-            try {
-                return fs.statSync(filePath).isFile();
-            } catch (err) {
-                return false;
-            }
-        }
-
-        function initCache() {
-            for (var i = 0; i < config.length; ++i) {
-                var c = config[i];
-                var basename = path.basename(c.pdfUrl, ".pdf");
-                c.cachedPdf = "content/" + basename + ".pdf";
-                c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
-                c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
-                if (!fileExists(c.cachedPdf)) {
-                    console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
-                        encoding: 'utf-8'
-                    }));
-                }
             }
         }
 
