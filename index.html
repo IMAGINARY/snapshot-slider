@@ -6,6 +6,7 @@
     <title>Swiper demo</title>
     <!-- Link Swiper's CSS -->
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
+    <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="main.css">
     <script src="config.js"></script>
     <script src="smtp_config.js"></script>
@@ -15,6 +16,7 @@
         window.$ = window.jQuery = require("jquery");
         require("swiper");
         window.PdfViewer = require("pdfviewer");
+        window.qrImage = require("qr-image");
 
         window.nodemailer = require('nodemailer');
         window.htmlToText = require('html-to-text');
@@ -31,20 +33,18 @@
                 console.log('Server is ready to take our messages');
             }
         });
+
+        window.path = require('path');
+        window.childProcess = require('child_process');
     </script>
-    <!-- load qrcode.js -->
-    <script src="node_modules/qrcode-js-package/qrcode.min.js"></script>
 </head>
 
-<body>
+<body class="noselect">
 
     <!-- Swiper -->
     <div class="swiper-container" id="slider">
         <div class="swiper-wrapper">
         </div>
-        <div class="swiper-pagination"></div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-button-next"></div>
     </div>
 
     <!-- load slide contents from config -->
@@ -54,33 +54,32 @@
             for (var i = 0; i < config.length; ++i) {
                 var slide = document.createElement("DIV");
                 slide.classList.add("swiper-slide");
-                slide.innerHTML = "Slide " + i + ":<br>";
-                slide.innerHTML += "<a href=\"javascript:switchToViewer( " + i + " )\">Show</a><br>";
-                slide.innerHTML += "<a href=\"javascript:switchToMailMode( " + i + " )\">Mail</a><br>";
-                slide.innerHTML += "<a href=\"javascript:switchToPrintMode( " + i + " )\">Print</a>";
-                slide.innerHTML += "<div id=\"qrcode" + i + "\"></div>";
+                var innerHTML = '';
+                innerHTML += "<div id=\"pdfViewer" + i + "\" class=\"pdfViewer\"></div>";
+                innerHTML += '<div id="button-bar-'+ i +'" class="button-bar">';
+                innerHTML += '    <a href="javascript:switchToMailMode(' + i + ');"><i class="fa fa-envelope-o fa-3x" aria-hidden="true"></i></a>';
+                innerHTML += '    <a href="javascript:print(' + i + ');"><i class="fa fa-print fa-3x" aria-hidden="true"></i></a>';
+                innerHTML += '</div>';
+                slide.innerHTML = innerHTML;
                 swiper_wrapper.appendChild(slide);
-                new QRCode(
-                    "qrcode" + i, {
-                        text: config[i].shortWebsiteUrl,
-                        useSVG: true
+
+                // add QR code
+                var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, { type: 'svg', size: 2 }));
+                console.log( svgObject );
+                svgObject.addClass("qrcode");
+                $( '#button-bar-' + i ).append( svgObject );
+
+                // add PDF viewer
+                new PdfViewer({
+                    pdfUrl: path.resolve(config[i].cachedPdf),
+                    staticHost: 'node_modules/pdfviewer/dist/index.html',
+                    onerror: function(err) {
+                        console.error('PdfViewer', err);
                     }
-                );
+                }).embed(document.getElementById('pdfViewer' + i));
             }
         }
     </script>
-
-    <div id="showPdf">
-        Show PDF
-        <a href="javascript:switchToSlider()">Hide</a>
-        <div id="pdfViewer"></div>
-    </div>
-
-    <div id="printPdf">
-        Print PDF
-        <a href="javascript:switchToSlider()">Hide</a>
-        <a id="printButton" href="">Print</a>
-    </div>
 
     <div id="sendEmail">
         Send E-Mail
@@ -97,19 +96,19 @@
     </div>
 
     <script>
+        var swiper;
+
         function initSlider() {
-            var swiper = new Swiper('.swiper-container', {
-                loop: true,
-                pagination: '.swiper-pagination',
-                nextButton: '.swiper-button-next',
-                prevButton: '.swiper-button-prev',
-                paginationClickable: true,
-                spaceBetween: 30,
+            swiper = new Swiper('.swiper-container', {
+                spaceBetween: 50,
+                freeMode: true,
+                slidesPerView: 'auto',
+                mousewheelControl: true,
+                mousewheelForceToAxis: true,
+                keyboardControl: true
             });
         }
 
-        var path = require('path');
-        var childProcess = require('child_process');
 
         function fileExists(filePath) {
             try {
@@ -141,18 +140,14 @@
         function switchToViewer(which) {
             console.log(config);
             $('body > div').hide().filter('#showPdf').show();
-            new PdfViewer({
-                pdfUrl: path.resolve(config[which].cached2on1Pdf),
-                staticHost: 'node_modules/pdfviewer/dist/index.html',
-                onerror: function(err) {
-                    console.error('PdfViewer', err);
-                }
-            }).embed(document.getElementById('pdfViewer'));
+
         }
 
         function switchToMailMode(which) {
-            $('#mailButton').attr('href', 'javascript:email(' + which + ')');
-            $('body > div').hide().filter('#sendEmail').show();
+            console.log("called");
+            $('#slider').css('-webkit-filter', 'blur(25px)');
+            $('#sendEmail').show();
+            //$('body > div').hide().filter('#sendEmail').show();
         }
 
         function switchToPrintMode(which) {

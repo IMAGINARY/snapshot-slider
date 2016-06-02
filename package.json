@@ -27,8 +27,9 @@
         "jquery": "^2.2.4",
         "swiper": "^3.3.1",
         "pdfviewer": "^0.3.2",
-        "qrcode-js-package": "^1.0.4",
+        "qr-image": "^3.1.0",
         "html-to-text": "^2.1.0",
-        "string-template": "^1.0.0"
+        "string-template": "^1.0.0",
+        "font-awesome": "^4.6.3"
     }
 }

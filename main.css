@@ -1,33 +1,152 @@
-body {
-    background: #eee;
-    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    color: #000;
+/*------------------------------------*\
+    RESET
+\*------------------------------------*/
+
+
+/* http://meyerweb.com/eric/tools/css/reset/
+    v2.0b1 | 201101
+    NOTE:WORK IN PROGRESS
+    USE WITH CAUTION AND TEST WITH ABANDON */
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
     margin: 0;
     padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
 }
 
+/* HTML5 display-role reset for older browsers */
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1;
+}
+ol, ul {
+    list-style: none;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after, q:before, q:after {
+    content: ’’;
+    content: none;
+}
+
+/* remember to define visible focus styles!
+:focus{
+    outline:?????;
+} */
+
+
+/* remember to highlight inserts somehow! */
+
+ins {
+    text-decoration: none;
+}
+del {
+    text-decoration: line-through;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+html {
+    overflow: hidden;
+    height: 100%;
+}
+body {
+    background: #777;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+.noselect {
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Chrome/Safari/Opera */
+    -khtml-user-select: none;
+    /* Konqueror */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE/Edge */
+    user-select: none;
+    /* non-prefixed version, currently
+                                  not supported by any browser */
+}
 .swiper-container {
-    width: 500px;
-    height: 300px;
-    margin: 20px auto;
+    background: #222;
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
+    /*
+    margin: 0px auto;
+    padding: 50px;
+*/
+    transform: scale( 0.65, 0.65);
+    transform-origin: top left;
 }
-
 .swiper-slide {
+    width: 40%;
+    height: 100%;
+    /*
+    margin: auto;
+*/
     text-align: center;
     font-size: 18px;
-    background: #fff;
-    /* Center slide text vertically */
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-box-pack: center;
-    -ms-flex-pack: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    align-items: center;
+}
+.pdfViewer {
+    position: absolute;
+    width: 100%;
+    height: 92.5%;
+}
+.button-bar {
+    position: absolute;
+    width: 100%;
+    bottom: 0%;
+}
+.button-bar > * {
+    margin-left: 30px;
+}
+.button-bar > *:first-child {
+    margin-left: 0px;
+}
+.button-bar > a:link {
+    color: white;
+}
+
+/* visited link */
+
+.button-bar > a:visited {
+    color: white;
+}
+
+/* mouse over link */
+
+.button-bar > a:hover {
+    color: red;
+}
+
+/* selected link */
+
+.button-bar > a:active {
+    color: hotpink;
+}
+.qrcode {
+    background-color: white;
+    margin-left: 200px;
 }
