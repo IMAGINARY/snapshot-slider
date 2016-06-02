@@ -99,7 +99,6 @@
         }
 
         function initSlides() {
-            var swiper_wrapper = document.getElementsByClassName("swiper-wrapper")[0];
             for (var i = 0; i < config.length; ++i) {
                 var slide = document.createElement("DIV");
                 slide.classList.add("swiper-slide");
@@ -110,7 +109,7 @@
                 innerHTML += '    <a href="javascript:print(' + i + ');"><i class="fa fa-print fa-3x" aria-hidden="true"></i></a>';
                 innerHTML += '</div>';
                 slide.innerHTML = innerHTML;
-                swiper_wrapper.appendChild(slide);
+                swiper.appendSlide(slide);
 
                 // add QR code
                 var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, { type: 'svg', size: 2 }));
@@ -206,8 +205,8 @@
 
         $(document).ready(function() {
             initCache();
-            initSlides();
             initSlider();
+            initSlides();
             switchToSlider();
         });
     </script>
