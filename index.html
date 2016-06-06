@@ -202,7 +202,11 @@
                             viewport: scaledViewport
                         };
 
-                        page.render(renderContext);
+                        page.render(renderContext).then( function()
+                        {
+                            $( canvas ).replaceWith( $( '<img>').attr('src', canvas.toDataURL()) );
+                            console.log("done");
+                        });
                     });
                     pagePromises.push(pagePromise);
                 }
