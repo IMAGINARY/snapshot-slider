@@ -15,12 +15,14 @@
     <script>
         window.$ = window.jQuery = require("jquery");
         require("swiper");
-        window.PdfViewer = require("pdfviewer");
         window.qrImage = require("qr-image");
 
         window.nodemailer = require('nodemailer');
         window.htmlToText = require('html-to-text');
         window.format = require('string-template');
+
+        require("pdfjs-dist");
+        window.PDFJS.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
 
         // create reusable transporter object using the default SMTP transport
         window.transporter = nodemailer.createTransport(smtpConfig);
@@ -42,7 +44,7 @@
 <body class="noselect">
 
     <!-- Swiper -->
-    <div class="swiper-container" id="slider">
+    <div class="swiper-container swiper-container-h" id="slider">
         <div class="swiper-wrapper">
         </div>
     </div>
@@ -87,46 +89,130 @@
             }
         }
 
-        function initSlider() {
-            swiper = new Swiper('.swiper-container', {
-                spaceBetween: 50,
-                freeMode: true,
+        function initSliders() {
+            swiper = new Swiper('#slider', {
+                direction: 'horizontal',
                 slidesPerView: 'auto',
+                freeMode: true,
                 mousewheelControl: true,
                 mousewheelForceToAxis: true,
-                keyboardControl: true
+                spaceBetween: 80,
+                initialSlide: 1
             });
+            var initVerticalSlider = function() {
+                new Swiper(this, {
+                    direction: 'vertical',
+                    slidesPerView: 'auto',
+                    spaceBetween: 0,
+                    freeMode: true,
+                    mousewheelControl: true,
+                    mousewheelForceToAxis: true,
+                });
+            };
+            $('#slider .swiper-container').each(initVerticalSlider);
+        }
+
+        var documents = new Array(config.length);
+
+        function initDocuments() {
+            var promises = [];
+            for (var i = 0; i < config.length; ++i) {
+                const local_i = i;
+                var promise = PDFJS.getDocument(config[local_i].cachedPdf).promise;
+                promise.then(function(pdf) {
+                    documents[local_i] = pdf;
+                    console.log(`done loading PDF ${local_i}`);
+                });
+                promises.push(promise);
+            }
+            var result = Promise.all(promises);
+            result.then(function() {
+                console.log("done loading all PDFs");
+            });
+            return result;
         }
 
         function initSlides() {
+            const spacer = document.createElement("div");
+            spacer.classList.add("swiper-slide");
+            spacer.classList.add("swiper-slide-h");
+            spacer.style.width = 0;
+            $("#slider").children(".swiper-wrapper").first().append(spacer);
+
+            var pagePromises = [];
+
             for (var i = 0; i < config.length; ++i) {
-                var slide = document.createElement("DIV");
+                const slide = document.createElement("DIV");
                 slide.classList.add("swiper-slide");
-                var innerHTML = '';
-                innerHTML += "<div id=\"pdfViewer" + i + "\" class=\"pdfViewer\"></div>";
-                innerHTML += '<div id="button-bar-'+ i +'" class="button-bar">';
-                innerHTML += '    <a href="javascript:switchToMailMode(' + i + ');"><i class="fa fa-envelope-o fa-3x" aria-hidden="true"></i></a>';
-                innerHTML += '    <a href="javascript:print(' + i + ');"><i class="fa fa-print fa-3x" aria-hidden="true"></i></a>';
-                innerHTML += '</div>';
-                slide.innerHTML = innerHTML;
-                swiper.appendSlide(slide);
+                slide.classList.add("swiper-slide-h");
+                $("#slider").children(".swiper-wrapper").first().append(slide);
+
+                const verticalSwiper = $('<div class="swiper-container swiper-container-v"><div class="swiper-wrapper"></div></div>');
+                const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
+
+                $(slide).append(verticalSwiper);
+                $(slide).append(
+                    `
+                    <div id="button-bar-${i}" class="button-bar">
+                        <a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o fa-3x" aria-hidden="true"></i></a>
+                        <a href="javascript:print(${i});"><i class="fa fa-print fa-3x" aria-hidden="true"></i></a>
+                    </div>
+                `
+                );
 
                 // add QR code
-                var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, { type: 'svg', size: 2 }));
-                console.log( svgObject );
+                var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, {
+                    type: 'svg',
+                    size: 2
+                }));
                 svgObject.addClass("qrcode");
-                $( '#button-bar-' + i ).append( svgObject );
+                $(`#button-bar-${i}`).append(svgObject);
 
-                // add PDF viewer
-                new PdfViewer({
-                    pdfUrl: path.resolve(config[i].cachedPdf),
-                    staticHost: 'node_modules/pdfviewer/dist/index.html',
-                    onerror: function(err) {
-                        console.error('PdfViewer', err);
-                    }
-                }).embed(document.getElementById('pdfViewer' + i));
+                const pdf = documents[i];
+
+                const div = document.createElement("div");
+                div.classList.add("swiper-slide");
+                div.classList.add("swiper-slide-v");
+                div.style.height = 0;
+                verticalSwiperWrapper.append(div);
+
+                for (var pageNum = 1; pageNum <= pdf.numPages; ++pageNum) {
+                    const div = document.createElement("div");
+                    div.classList.add("swiper-slide");
+                    div.classList.add("swiper-slide-v");
+                    const canvas = document.createElement("CANVAS");
+
+                    //canvas.style.border = '5px solid red';
+                    canvas.width = $(slide).width();
+                    div.appendChild(canvas);
+
+                    const thisPageNum = pageNum;
+
+                    verticalSwiperWrapper.append(div);
+
+                    var pagePromise = pdf.getPage(pageNum).then(function(page) {
+                        var viewport = page.getViewport(1);
+                        var scale = canvas.width / viewport.width;
+                        var scaledViewport = page.getViewport(scale);
+                        canvas.height = scaledViewport.height;
+
+                        var context = canvas.getContext('2d');
+                        var renderContext = {
+                            canvasContext: context,
+                            viewport: scaledViewport
+                        };
+
+                        page.render(renderContext);
+                    });
+                    pagePromises.push(pagePromise);
+                }
             }
+
+            $("#slider").children(".swiper-wrapper").first().append($(spacer).clone());
+
+            return Promise.all(pagePromises);
         }
+
 
         function switchToSlider() {
             $('body > div').hide().filter('#slider').show();
@@ -135,7 +221,6 @@
         function switchToViewer(which) {
             console.log(config);
             $('body > div').hide().filter('#showPdf').show();
-
         }
 
         function switchToMailMode(which) {
@@ -205,9 +290,12 @@
 
         $(document).ready(function() {
             initCache();
-            initSlider();
-            initSlides();
-            switchToSlider();
+            initDocuments().then(function() {
+                initSlides().then(function() {
+                    initSliders();
+                    switchToSlider();
+                });
+            });
         });
     </script>
 </body>

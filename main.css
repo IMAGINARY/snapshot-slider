@@ -88,7 +88,7 @@ body {
     /* non-prefixed version, currently
                                   not supported by any browser */
 }
-.swiper-container {
+.swiper-container-h {
     background: #222;
     position: absolute;
     width: 1920px;
@@ -96,25 +96,33 @@ body {
     /*
     margin: 0px auto;
     padding: 50px;
+    transform: scale( 0.875, 0.875 );
 */
-    transform: scale( 0.65, 0.65);
+    transform: scale( 0.6, 0.6 );
     transform-origin: top left;
 }
-.swiper-slide {
-    width: 40%;
-    height: 100%;
-    /*
-    margin: auto;
-*/
+
+.swiper-container-v {
+    height: 94%;
+}
+
+.swiper-slide-h {
+    width: 600px;
     text-align: center;
     font-size: 18px;
 }
+
+.swiper-slide-v {
+    height: auto;
+}
+
 .pdfViewer {
     position: absolute;
     width: 100%;
     height: 92.5%;
 }
 .button-bar {
+    background-color: white;
     position: absolute;
     width: 100%;
     bottom: 0%;
@@ -126,13 +134,13 @@ body {
     margin-left: 0px;
 }
 .button-bar > a:link {
-    color: white;
+    color: black;
 }
 
 /* visited link */
 
 .button-bar > a:visited {
-    color: white;
+    color: black;
 }
 
 /* mouse over link */
