@@ -162,7 +162,7 @@
             var nestedSwiperConfig = {
                 direction: 'vertical',
                 slidesPerView: 'auto',
-                spaceBetween: 0,
+                spaceBetween: 4,
                 freeMode: true,
                 mousewheelControl: true,
                 mousewheelForceToAxis: true,
@@ -212,8 +212,8 @@
                 $(slide).append(
                     `
                     <div id="button-bar-${i}" class="button-bar">
-                        <a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o fa-3x" aria-hidden="true"></i></a>
-                        <a href="javascript:print(${i});"><i class="fa fa-print fa-3x" aria-hidden="true"></i></a>
+                        <a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>
+                        <a href="javascript:print(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>
                     </div>
                 `
                 );
@@ -230,19 +230,12 @@
 
                 const pdf = documents[i];
 
-                const div = document.createElement("div");
-                div.classList.add("swiper-slide");
-                div.classList.add("swiper-slide-v");
-                div.style.height = 0;
-                verticalSwiperWrapper.append(div);
-
                 for (var pageNum = 1; pageNum <= pdf.numPages; ++pageNum) {
                     const div = document.createElement("div");
                     div.classList.add("swiper-slide");
                     div.classList.add("swiper-slide-v");
                     const canvas = document.createElement("CANVAS");
 
-                    //canvas.style.border = '5px solid red';
                     canvas.width = $(slide).width();
                     div.appendChild(canvas);
 
