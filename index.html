@@ -277,6 +277,39 @@
             });
         }
 
+        function initIdleHandlers() {
+            var idle_timer = null;
+            var init_idle_timer = function(delay) {
+                if (idle_timer != null)
+                    clearTimeout(idle_timer);
+                idle_timer = setTimeout(idle_handler, delay);
+            }
+            var non_idle_handler = function(evt) {
+                console.log("non_idle_handler");
+                init_idle_timer(miscConfig.idleModeDelayMs);
+            }
+            var idle_handler = function() {
+                console.log("idle_handler");
+                idleAction();
+                init_idle_timer(miscConfig.idleModeDelayBetweenActionsMs);
+            }
+
+            document.body.addEventListener('mouseup', non_idle_handler, true);
+            document.body.addEventListener('mousemove', non_idle_handler, true);
+            document.body.addEventListener('mousedown', non_idle_handler, true);
+            document.body.addEventListener("touchstart", non_idle_handler, true);
+            document.body.addEventListener("touchend", non_idle_handler, true);
+            document.body.addEventListener("touchcancel", non_idle_handler, true);
+            document.body.addEventListener("touchmove", non_idle_handler, true);
+            document.body.addEventListener("onscroll", non_idle_handler, true);
+
+            init_idle_timer(miscConfig.idleModeDelayMs);
+        }
+
+        function idleAction() {
+            nestedSwipers[(swiper.activeIndex + 2) % config.length].slideTo(0, 0);
+            swiper.slideNext(true, miscConfig.idleAnimationDurationMs);
+        }
 
         function switchToSlider() {
             $('body > div').hide().filter('#slider').show();
@@ -359,6 +392,7 @@
                 initSlides().then(function() {
                     $('#progress').hide();
                     initSliders();
+                    initIdleHandlers();
                     switchToSlider();
                 });
             });

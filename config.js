@@ -271,3 +271,9 @@ var mailConfig = {
 
     </html>`
 };
+
+var miscConfig = {
+    idleModeDelayMs: 3 * 60 * 1000,
+    idleModeDelayBetweenActionsMs: 8 * 1000,
+    idleAnimationDurationMs: 1 * 1000
+};
