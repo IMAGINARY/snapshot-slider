@@ -71,6 +71,7 @@
 
     <script>
         var swiper;
+        var nestedSwipers = [];
 
         function fileExists(filePath) {
             try {
@@ -96,26 +97,61 @@
         }
 
         function initSliders() {
-            swiper = new Swiper('#slider', {
+            var lastActiveIndex = -1;
+            var triggerAgain;
+            var callback = function() {
+                if (lastActiveIndex != swiper.activeIndex) {
+                    lastActiveIndex = swiper.activeIndex;
+                    var start;
+                    if (swiper.previousIndex < swiper.activeIndex) {
+                        start = swiper.activeIndex + 3 - nestedSwipers.length;
+                    } else {
+                        start = swiper.activeIndex - 3;
+                    }
+                    start = (swiper.slides.length + start) % swiper.slides.length;
+                    for (var i = start; i < start + nestedSwipers.length; ++i) {
+                        $(nestedSwipers[i % nestedSwipers.length].container[0]).prependTo(swiper.slides[i]);
+                    }
+                }
+                if (triggerAgain)
+                    window.requestAnimationFrame(callback);
+            }
+
+            var swiperConfig = {
                 direction: 'horizontal',
                 slidesPerView: 'auto',
                 freeMode: true,
+                //mousewheelControl: true,
+                //mousewheelForceToAxis: true,
+                spaceBetween: 78,
+                initialSlide: 0,
+                loop: true,
+                loopedSlides: config.length,
+                freeModeSticky: true,
+                centeredSlides: true,
+                onSlideChangeStart: function(swiper) {
+                    triggerAgain = true;
+                    window.requestAnimationFrame(callback);
+                },
+                onSlideChangeEnd: function(swiper) {
+                    triggerAgain = true;
+                },
+            };
+            swiper = new Swiper('#slider', swiperConfig);
+
+            var nestedSwiperConfig = {
+                direction: 'vertical',
+                slidesPerView: 'auto',
+                spaceBetween: 0,
+                freeMode: true,
                 mousewheelControl: true,
                 mousewheelForceToAxis: true,
-                spaceBetween: 80,
-                initialSlide: 1
-            });
-            var initVerticalSlider = function() {
-                new Swiper(this, {
-                    direction: 'vertical',
-                    slidesPerView: 'auto',
-                    spaceBetween: 0,
-                    freeMode: true,
-                    mousewheelControl: true,
-                    mousewheelForceToAxis: true,
-                });
+                controlBy: 'container'
             };
-            $('#slider .swiper-container').each(initVerticalSlider);
+            $(swiper.slides).not('.swiper-slide-duplicate').find('.swiper-container').each(function() {
+                nestedSwipers.push(new Swiper(this, nestedSwiperConfig));
+            });
+            $(swiper.slides).filter('.swiper-slide-duplicate').find('.swiper-container').remove();
         }
 
         var documents = new Array(config.length);
