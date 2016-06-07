@@ -43,6 +43,12 @@
 
 <body class="noselect">
 
+    <div id="progress">
+        PDF documents loaded: <span id="progressDocs">0</span>
+        <br /> PDF pages loaded: <span id="progressPages">0</span>
+        <br /> PDF pages rendered: <span id="progressRendered">0</span>
+    </div>
+
     <!-- Swiper -->
     <div class="swiper-container swiper-container-h" id="slider">
         <div class="swiper-wrapper">
@@ -121,13 +127,13 @@
                 var promise = PDFJS.getDocument(config[local_i].cachedPdf).promise;
                 promise.then(function(pdf) {
                     documents[local_i] = pdf;
-                    console.log(`done loading PDF ${local_i}`);
+                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1);
                 });
                 promises.push(promise);
             }
             var result = Promise.all(promises);
             result.then(function() {
-                console.log("done loading all PDFs");
+                $('#progressDocs').html($('#progressDocs').html() + '. done');
             });
             return result;
         }
@@ -135,6 +141,7 @@
         function initSlides() {
 
             var pagePromises = [];
+            var renderPromises = [];
 
             for (var i = 0; i < config.length; ++i) {
                 const slide = document.createElement("DIV");
@@ -186,6 +193,8 @@
                     verticalSwiperWrapper.append(div);
 
                     var pagePromise = pdf.getPage(pageNum).then(function(page) {
+                        $('#progressPages').html(parseInt($('#progressPages').html(), 10) + 1);
+
                         var viewport = page.getViewport(1);
                         var scale = canvas.width / viewport.width;
                         var scaledViewport = page.getViewport(scale);
@@ -197,18 +206,24 @@
                             viewport: scaledViewport
                         };
 
-                        page.render(renderContext).then( function()
-                        {
-                            $( canvas ).replaceWith( $( '<img>').attr('src', canvas.toDataURL()) );
-                            console.log("done");
+                        var renderPromise = page.render(renderContext).then(function() {
+                            $(canvas).replaceWith($('<img>').attr('src', canvas.toDataURL()));
+                            $('#progressRendered').html(parseInt($('#progressRendered').html(), 10) + 1);
                         });
+                        renderPromises.push(renderPromise);
                     });
                     pagePromises.push(pagePromise);
                 }
             }
 
-
-            return Promise.all(pagePromises);
+            return new Promise(function(resolve, reject) {
+                Promise.all(pagePromises).then(function() {
+                    $('#progressPages').html($('#progressPages').html() + '. done');
+                    Promise.all(renderPromises).then(function() {
+                        $('#progressRendered').html($('#progressRendered').html() + '. done');
+                    }).then(resolve, reject);
+                }, reject);
+            });
         }
 
 
@@ -290,6 +305,7 @@
             initCache();
             initDocuments().then(function() {
                 initSlides().then(function() {
+                    $('#progress').hide();
                     initSliders();
                     switchToSlider();
                 });
