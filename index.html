@@ -85,13 +85,17 @@
             for (var i = 0; i < config.length; ++i) {
                 var c = config[i];
                 var basename = path.basename(c.pdfUrl, ".pdf");
-                c.cachedPdf = "content/" + basename + ".pdf";
-                c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
-                c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
-                if (!fileExists(c.cachedPdf)) {
-                    console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
-                        encoding: 'utf-8'
-                    }));
+                if (typeof c.isOverview == 'undefined' || c.isOverview == false) {
+                    c.cachedPdf = "content/" + basename + ".pdf";
+                    c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
+                    c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
+                    if (!fileExists(c.cachedPdf)) {
+                        console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
+                            encoding: 'utf-8'
+                        }));
+                    }
+                } else {
+                    c.cachedPdf = c.pdfUrl;
                 }
             }
         }
@@ -205,6 +209,8 @@
                 }));
                 svgObject.addClass("qrcode");
                 $(`#button-bar-${i}`).append(svgObject);
+                if (typeof config[i].isOverview != 'undefined' && config[i].isOverview == true)
+                    $(`#button-bar-${i}`).hide();
 
                 const pdf = documents[i];
 

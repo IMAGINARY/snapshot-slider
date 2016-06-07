@@ -1,5 +1,12 @@
 // list snapshots ordered by snapshot id (most recent first)
 var config = [{
+        author: '',
+        title: '',
+        websiteUrl: 'https://imaginary.org/snapshots',
+        shortWebsiteUrl: 'http://bit.ly/1Pewr52',
+        pdfUrl: 'resources/overview.pdf',
+        isOverview: true
+    }, {
         author: 'Rafael Guglielmetti, Matthieu Jacquemet ',
         title: 'Polyhedra and commensurability',
         websiteUrl: 'https://imaginary.org/snapshot/polyhedra-and-commensurability',
