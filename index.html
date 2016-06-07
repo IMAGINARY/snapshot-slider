@@ -71,7 +71,23 @@
 
     <script>
         var swiper;
+        var swiperInitialSlide;
         var nestedSwipers = [];
+
+        function rearrangeConfig() {
+            // reverse order such that oldest items come first
+            config.reverse();
+
+            // put overview page to the beginning again
+            var overviewElem = config.pop();
+            config.unshift(overviewElem);
+
+            // move ~half of the slides from the end to the beginning
+            for (swiperInitialSlide = 0; swiperInitialSlide < Math.floor(config.length / 2); ++swiperInitialSlide) {
+                var elem = config.pop();
+                config.unshift(elem);
+            }
+        }
 
         function fileExists(filePath) {
             try {
@@ -128,7 +144,7 @@
                 //mousewheelControl: true,
                 //mousewheelForceToAxis: true,
                 spaceBetween: 78,
-                initialSlide: 0,
+                initialSlide: swiperInitialSlide,
                 loop: true,
                 loopedSlides: config.length,
                 freeModeSticky: true,
@@ -344,6 +360,7 @@
         }
 
         $(document).ready(function() {
+            rearrangeConfig();
             initCache();
             initDocuments().then(function() {
                 initSlides().then(function() {
