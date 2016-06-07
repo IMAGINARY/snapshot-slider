@@ -133,11 +133,6 @@
         }
 
         function initSlides() {
-            const spacer = document.createElement("div");
-            spacer.classList.add("swiper-slide");
-            spacer.classList.add("swiper-slide-h");
-            spacer.style.width = 0;
-            $("#slider").children(".swiper-wrapper").first().append(spacer);
 
             var pagePromises = [];
 
@@ -212,7 +207,6 @@
                 }
             }
 
-            $("#slider").children(".swiper-wrapper").first().append($(spacer).clone());
 
             return Promise.all(pagePromises);
         }
