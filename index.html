@@ -216,7 +216,7 @@
                     `
                     <div id="button-bar-${i}" class="button-bar">
                         <a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>
-                        <a href="javascript:print(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>
+                        <a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>
                     </div>
                 `
                 );
@@ -310,6 +310,7 @@
         }
 
         function idleAction() {
+            bootbox.hideAll();
             nestedSwipers[(swiper.activeIndex + 2) % config.length].slideTo(0, 0);
             swiper.slideNext(true, miscConfig.idleAnimationDurationMs);
         }
@@ -331,8 +332,15 @@
         }
 
         function switchToPrintMode(which) {
-            $('#printButton').attr('href', 'javascript:print(' + which + ')');
-            $('body > div').hide().filter('#printPdf').show();
+            bootbox.confirm({
+                title: 'Confirm printing',
+                message: `<p class="dialog">Do you want to print: <em>"<b>${config[which].author.trim()}:</b> ${config[which].title.trim()}"</em>?<p>`,
+                callback: function(result) {
+                    if (result) {
+                        print(which);
+                    }
+                }
+            });
         }
 
         function print(which) {

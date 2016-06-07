@@ -168,3 +168,12 @@ body {
 #progress {
     font-size: xx-large;
 }
+
+.dialog em b {
+    font-weight: bold;
+    font-style: normal;
+}
+
+.dialog em {
+    font-style: italic;
+}
