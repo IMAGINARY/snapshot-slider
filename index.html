@@ -258,7 +258,7 @@
                         };
 
                         var renderPromise = page.render(renderContext).then(function() {
-                            $(canvas).replaceWith($('<img>').attr('src', canvas.toDataURL()));
+                            //$(canvas).replaceWith($('<img>').attr('src', canvas.toDataURL()));
                             $('#progressRendered').html(parseInt($('#progressRendered').html(), 10) + 1);
                         });
                         renderPromises.push(renderPromise);
