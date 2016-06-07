@@ -6,6 +6,7 @@
     <title>Swiper demo</title>
     <!-- Link Swiper's CSS -->
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="libs/jqbtk.min.css">
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="main.css">
@@ -42,6 +43,7 @@
         window.path = require('path');
         window.childProcess = require('child_process');
     </script>
+    <script src="libs/jqbtk.js"></script>
 </head>
 
 <body class="noselect">
@@ -324,11 +326,24 @@
             $('body > div').hide().filter('#showPdf').show();
         }
 
+        var recipientName = '';
+        var recipientAddress = '';
         function switchToMailMode(which) {
-            console.log("called");
-            $('#slider').css('-webkit-filter', 'blur(25px)');
-            $('#sendEmail').show();
-            //$('body > div').hide().filter('#sendEmail').show();
+            bootbox.confirm({
+                title: 'Please enter your email address',
+                message: '<p>Select one of the input fields to open the on screen keyboard. Click outside the on screen keyboard to hide it.</p><br /><p><div class="form-group"><label for="emailName">Name:</label><input type="text" class="keyboard form-control" id="emailName"></div><div class="form-group"><label for="emailAddress">Email:</label><input type="text" class="keyboard form-control" id="emailAddress"></div></p>',
+                callback: function(result) {
+                    if (result) {
+                        recipientName = $('#emailName').val().trim();
+                        recipientAddress = $('#emailAddress').val().trim();
+                        email(which);
+                        recipientName = '';
+                        recipientAddress = '';
+                    }
+                }
+            });
+            $("#emailName").keyboard();
+            $("#emailAddress").keyboard();
         }
 
         function switchToPrintMode(which) {
@@ -352,9 +367,6 @@
 
         function email(which) {
             var c = config[which];
-
-            const recipientName = document.getElementById('recipientName').value;
-            const recipientAddress = document.getElementById('recipientAddress').value;
 
             console.log('mailing ' + c.websiteUrl + ' to ' + recipientAddress);
             console.log(smtpConfig);
@@ -390,9 +402,11 @@
             // send mail with defined transport object
             transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
-                    return console.log(error);
+                    bootbox.alert('Email could not be sent');
+                    console.log(error);
+                } else {
+                    bootbox.alert('Email sent successfully');
                 }
-                console.log('Message sent: ' + info.response);
             });
         }
 
