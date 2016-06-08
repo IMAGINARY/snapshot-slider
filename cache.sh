@@ -27,9 +27,3 @@ if [ ! -f "$DIRNAME/$BASENAME-booklet.pdf" ]; then
 else
     >&2 echo "$DIRNAME/$BASENAME-booklet.pdf already cached"
 fi
-if [ ! -f "$DIRNAME/$BASENAME-2on1.pdf" ]; then
-    >&2 echo "Creating $DIRNAME/$BASENAME-2on1.pdf"
-    pdfjam --outfile "$DIRNAME/$BASENAME-2on1.pdf" --landscape --nup 2x1 "$DIRNAME/$BASENAME.pdf"
-else
-    >&2 echo "$DIRNAME/$BASENAME-2on1.pdf already cached"
-fi
