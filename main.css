@@ -141,6 +141,14 @@ body {
     color: black;
 }
 
+.button-bar.overview {
+    background-color: transparent;
+}
+
+.button-bar.overview > a:link {
+    color: white;
+}
+
 /* visited link */
 
 .button-bar > a:visited {

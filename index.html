@@ -231,7 +231,7 @@
                 svgObject.addClass("qrcode");
                 $(`#button-bar-${i}`).append(svgObject);
                 if (typeof config[i].isOverview != 'undefined' && config[i].isOverview == true)
-                    $(`#button-bar-${i}`).hide();
+                    $(`#button-bar-${i}`).addClass('overview');
 
                 const pdf = documents[i];
 
