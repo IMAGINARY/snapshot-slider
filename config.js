@@ -1,4 +1,5 @@
 // list snapshots ordered by snapshot id (most recent first)
+// TODO: create this list automatically based on https://imaginary.org/api/snapshots.json
 var config = [{
         author: '',
         title: '',
