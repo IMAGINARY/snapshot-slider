@@ -1,8 +1,8 @@
 // list snapshots ordered by snapshot id (most recent first)
 // TODO: create this list automatically based on https://imaginary.org/api/snapshots.json
 var config = [{
-        author: '',
-        title: '',
+        author: 'Mathematisches Forschungsinstitut Oberwolfach',
+        title: 'Snapshots of modern mathematics from Oberwolfach',
         websiteUrl: 'https://imaginary.org/snapshots',
         shortWebsiteUrl: 'http://bit.ly/1Pewr52',
         pdfUrl: 'resources/overview.pdf',
