@@ -1,0 +1,10 @@
+# LaTeX related temp and output files
+*.fdb_latexmk
+*.fls
+*.aux
+*.out
+*.log
+*.gz
+*.pdf
+*.bbl
+*.blg
