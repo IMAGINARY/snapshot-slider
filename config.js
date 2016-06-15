@@ -5,7 +5,7 @@ var config = [{
         title: 'Snapshots of modern mathematics from Oberwolfach',
         websiteUrl: 'https://imaginary.org/snapshots',
         shortWebsiteUrl: 'http://bit.ly/1Pewr52',
-        pdfUrl: 'resources/overview.pdf',
+        pdfUrl: 'https://github.com/IMAGINARY/snapshot-slider/files/316910/intro-page.pdf',
         isOverview: true
     }, {
         author: 'Rafael Guglielmetti, Matthieu Jacquemet ',
