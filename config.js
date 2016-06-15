@@ -6,7 +6,7 @@ var config = [{
         websiteUrl: 'https://imaginary.org/snapshots',
         shortWebsiteUrl: 'http://bit.ly/1Pewr52',
         pdfUrl: 'https://github.com/IMAGINARY/snapshot-slider/files/316910/intro-page.pdf',
-        isOverview: true
+        isFrontPage: true
     }, {
         author: 'Rafael Guglielmetti, Matthieu Jacquemet ',
         title: 'Polyhedra and commensurability',

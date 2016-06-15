@@ -145,6 +145,10 @@ body {
     background-color: transparent;
 }
 
+.button-bar.overview > .disabled {
+    color: #444;
+}
+
 .button-bar.overview > a:link {
     color: white;
 }
@@ -155,15 +159,19 @@ body {
     color: black;
 }
 
+.button-bar > a:visited {
+    color: white;
+}
+
 /* mouse over link */
 
-.button-bar > a:hover {
+.button-bar > a:hover, .button-bar.overview > a:hover {
     color: red;
 }
 
 /* selected link */
 
-.button-bar > a:active {
+.button-bar > a:active, .button-bar.overview > a:active {
     color: hotpink;
 }
 .qrcode {

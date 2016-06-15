@@ -106,7 +106,7 @@
             for (var i = 0; i < config.length; ++i) {
                 var c = config[i];
                 var basename = path.basename(c.pdfUrl, ".pdf");
-                if (typeof c.isOverview == 'undefined' || c.isOverview == false) {
+                if (typeof c.isFrontPage == 'undefined' || c.isFrontPage == false) {
                     c.cachedPdf = "content/" + basename + ".pdf";
                     c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
                     c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
@@ -213,15 +213,15 @@
                 const verticalSwiper = $('<div class="swiper-container swiper-container-v"><div class="swiper-wrapper"></div></div>');
                 const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
 
+                const isFrontPage = typeof config[i].isFrontPage != 'undefined' && config[i].isFrontPage == true;
+
                 $(slide).append(verticalSwiper);
-                $(slide).append(
-                    `
-                    <div id="button-bar-${i}" class="button-bar">
-                        <a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>
-                        <a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>
-                    </div>
-                `
-                );
+                const buttonBar = $(slide).append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
+                buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
+                if (isFrontPage)
+                    buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
+                else
+                    buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
 
                 // add QR code
                 var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, {
@@ -230,7 +230,7 @@
                 }));
                 svgObject.addClass("qrcode");
                 $(`#button-bar-${i}`).append(svgObject);
-                if (typeof config[i].isOverview != 'undefined' && config[i].isOverview == true)
+                if (isFrontPage)
                     $(`#button-bar-${i}`).addClass('overview');
 
                 const pdf = documents[i];
@@ -328,6 +328,7 @@
 
         var recipientName = '';
         var recipientAddress = '';
+
         function switchToMailMode(which) {
             bootbox.confirm({
                 title: 'Please enter your email address',
