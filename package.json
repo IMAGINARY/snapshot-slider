@@ -32,6 +32,7 @@
         "qr-image": "^3.1.0",
         "html-to-text": "^2.1.0",
         "string-template": "^1.0.0",
+        "nodemailer": "^2.4.2",
         "font-awesome": "^4.6.3"
     }
 }
