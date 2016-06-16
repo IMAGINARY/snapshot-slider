@@ -110,7 +110,7 @@
                 promises.push(new Promise(
                     function(resolve, reject) {
                         const resolve_wrapper = () => {
-                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1);
+                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1 + ' of ' + config.length);
                             resolve();
                         }
                         var basename = path.basename(c.pdfUrl, ".pdf");
@@ -206,6 +206,7 @@
         }
 
         var documents = new Array(config.length);
+        var totalNumPages = 0;
 
         function initDocuments() {
             var promises = [];
@@ -214,7 +215,8 @@
                 var promise = PDFJS.getDocument(config[local_i].cachedPdf).promise;
                 promise.then(function(pdf) {
                     documents[local_i] = pdf;
-                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1);
+                    totalNumPages += pdf.numPages;
+                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1 + ' of ' + config.length);
                 });
                 promises.push(promise);
             }
@@ -275,7 +277,7 @@
                     verticalSwiperWrapper.append(div);
 
                     var pagePromise = pdf.getPage(pageNum).then(function(page) {
-                        $('#progressPages').html(parseInt($('#progressPages').html(), 10) + 1);
+                        $('#progressPages').html(parseInt($('#progressPages').html(), 10) + 1 + ' of ' + totalNumPages);
 
                         var viewport = page.getViewport(1);
                         var scale = canvas.width / viewport.width;
@@ -290,7 +292,7 @@
 
                         var renderPromise = page.render(renderContext).then(function() {
                             //$(canvas).replaceWith($('<img>').attr('src', canvas.toDataURL()));
-                            $('#progressRendered').html(parseInt($('#progressRendered').html(), 10) + 1);
+                            $('#progressRendered').html(parseInt($('#progressRendered').html(), 10) + 1 + ' of ' + totalNumPages);
                         });
                         renderPromises.push(renderPromise);
                     });
