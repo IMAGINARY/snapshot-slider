@@ -114,27 +114,22 @@
                             resolve();
                         }
                         var basename = path.basename(c.pdfUrl, ".pdf");
-                        if (typeof c.isFrontPage == 'undefined' || c.isFrontPage == false) {
-                            c.cachedPdf = "content/" + basename + ".pdf";
-                            c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
-                            c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
-                            if (!fileExists(c.cachedPdf)) {
-                                childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
-                                    encoding: 'utf-8'
-                                }, (error, stdout, stderr) => {
-                                    console.log(stdout);
-                                    if (error) {
-                                        reject();
-                                        throw error;
-                                    } else {
-                                        resolve_wrapper();
-                                    }
-                                });
-                            } else {
-                                resolve_wrapper();
-                            }
+                        c.cachedPdf = "content/" + basename + ".pdf";
+                        c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
+                        c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
+                        if (!fileExists(c.cachedPdf)) {
+                            childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
+                                encoding: 'utf-8'
+                            }, (error, stdout, stderr) => {
+                                console.log(stdout);
+                                if (error) {
+                                    reject();
+                                    throw error;
+                                } else {
+                                    resolve_wrapper();
+                                }
+                            });
                         } else {
-                            c.cachedPdf = c.pdfUrl;
                             resolve_wrapper();
                         }
                     }
