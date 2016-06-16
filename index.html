@@ -49,7 +49,8 @@
 <body class="noselect">
 
     <div id="progress">
-        PDF documents loaded: <span id="progressDocs">0</span>
+        PDF documents cached: <span id="progressCache">0</span>
+        <br />PDF documents loaded: <span id="progressDocs">0</span>
         <br /> PDF pages loaded: <span id="progressPages">0</span>
         <br /> PDF pages rendered: <span id="progressRendered">0</span>
     </div>
@@ -103,22 +104,47 @@
         }
 
         function initCache() {
+            var promises = [];
             for (var i = 0; i < config.length; ++i) {
-                var c = config[i];
-                var basename = path.basename(c.pdfUrl, ".pdf");
-                if (typeof c.isFrontPage == 'undefined' || c.isFrontPage == false) {
-                    c.cachedPdf = "content/" + basename + ".pdf";
-                    c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
-                    c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
-                    if (!fileExists(c.cachedPdf)) {
-                        console.log(childProcess.execSync('2>&1 ./cache.sh ' + c.pdfUrl, {
-                            encoding: 'utf-8'
-                        }));
+                const c = config[i];
+                promises.push(new Promise(
+                    function(resolve, reject) {
+                        const resolve_wrapper = () => {
+                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1);
+                            resolve();
+                        }
+                        var basename = path.basename(c.pdfUrl, ".pdf");
+                        if (typeof c.isFrontPage == 'undefined' || c.isFrontPage == false) {
+                            c.cachedPdf = "content/" + basename + ".pdf";
+                            c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
+                            c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
+                            if (!fileExists(c.cachedPdf)) {
+                                childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
+                                    encoding: 'utf-8'
+                                }, (error, stdout, stderr) => {
+                                    console.log(stdout);
+                                    if (error) {
+                                        reject();
+                                        throw error;
+                                    } else {
+                                        resolve_wrapper();
+                                    }
+                                });
+                            } else {
+                                resolve_wrapper();
+                            }
+                        } else {
+                            c.cachedPdf = c.pdfUrl;
+                            resolve_wrapper();
+                        }
                     }
-                } else {
-                    c.cachedPdf = c.pdfUrl;
-                }
+                ));
             }
+            var result = Promise.all(promises);
+            result.then(function() {
+                $('#progressCache').html($('#progressCache').html() + '. done');
+            });
+            return result;
         }
 
         function initSliders() {
@@ -413,13 +439,14 @@
 
         $(document).ready(function() {
             rearrangeConfig();
-            initCache();
-            initDocuments().then(function() {
-                initSlides().then(function() {
-                    $('#progress').hide();
-                    initSliders();
-                    initIdleHandlers();
-                    switchToSlider();
+            initCache().then(function() {
+                initDocuments().then(function() {
+                    initSlides().then(function() {
+                        $('#progress').hide();
+                        initSliders();
+                        initIdleHandlers();
+                        switchToSlider();
+                    });
                 });
             });
         });
