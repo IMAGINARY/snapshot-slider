@@ -279,7 +279,8 @@
                         var scaledViewport = page.getViewport(scale);
                         canvas.height = scaledViewport.height;
 
-                        var context = canvas.getContext('2d');
+//                        var context = canvas.getContext("2d", {alpha: false});
+                        var context = canvas.getContext("2d");
                         var renderContext = {
                             canvasContext: context,
                             viewport: scaledViewport
