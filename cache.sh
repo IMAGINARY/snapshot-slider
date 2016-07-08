@@ -13,7 +13,7 @@ if [ ! -f "$DIRNAME/$BASENAME-booklet.pdf" ]; then
     >&2 echo "Creating $DIRNAME/$BASENAME-booklet.pdf"
     EMPTY_PAGE_PDF="resources/A5-empty.pdf"
     PAGES=$(pdfinfo "$DIRNAME/$BASENAME.pdf" | grep Pages | awk '{print $2}')
-    MISSING_EMPTY_PAGES=$(echo "4 - $PAGES % 4" | bc)
+    MISSING_EMPTY_PAGES=$(echo "(4 - $PAGES % 4) % 4" | bc)
     PDFJAM_ARGS="$DIRNAME/$BASENAME.pdf 1-"$(echo "$PAGES - 1" | bc)
     for i in `seq 1 $MISSING_EMPTY_PAGES`;
     do
