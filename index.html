@@ -147,17 +147,16 @@
             var triggerAgain;
             var callback = function() {
                 if (lastActiveIndex != swiper.activeIndex) {
+                    console.log("reassigning slides");
+                    $('slide-wrapper').css({
+                        outline: 'none'
+                    });
+                    for (var i = swiper.activeIndex - 3; i <= swiper.activeIndex + 3; i++) {
+                        const $slide = $(swiper.slides[i % swiper.slides.length]);
+                        $(nestedSwipers[$slide.attr("data-swiper-slide-index")].container[0]).prependTo($slide.find(".slide-wrapper"));
+                        console.log($slide.attr("data-swiper-slide-index") + " -> " + i % swiper.slides.length);
+                    }
                     lastActiveIndex = swiper.activeIndex;
-                    var start;
-                    if (swiper.previousIndex < swiper.activeIndex) {
-                        start = swiper.activeIndex + 3 - nestedSwipers.length;
-                    } else {
-                        start = swiper.activeIndex - 3;
-                    }
-                    start = (swiper.slides.length + start) % swiper.slides.length;
-                    for (var i = start; i < start + nestedSwipers.length; ++i) {
-                        $(nestedSwipers[i % nestedSwipers.length].container[0]).prependTo(swiper.slides[i]);
-                    }
                 }
                 if (triggerAgain)
                     window.requestAnimationFrame(callback);
@@ -237,14 +236,18 @@
                 slide.classList.add("swiper-slide");
                 slide.classList.add("swiper-slide-h");
                 $("#slider").children(".swiper-wrapper").first().append(slide);
+                const $slide_wrapper = $('<div/>', {
+                    class: 'slide-wrapper'
+                });
+                $(slide).append($slide_wrapper);
 
                 const verticalSwiper = $('<div class="swiper-container swiper-container-v"><div class="swiper-wrapper"></div></div>');
                 const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
 
                 const isFrontPage = typeof config[i].isFrontPage != 'undefined' && config[i].isFrontPage == true;
 
-                $(slide).append(verticalSwiper);
-                const buttonBar = $(slide).append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
+                $slide_wrapper.append(verticalSwiper);
+                const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
                 buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
                 if (isFrontPage)
                     buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
