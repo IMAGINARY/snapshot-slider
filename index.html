@@ -186,6 +186,8 @@
                 },
             };
             swiper = new Swiper('#slider', swiperConfig);
+            for (var i = 0; i < swiper.slides.length; i++)
+                $(swiper.slides[i]).attr("data-swiper-fake-slide-index", i);
 
             var nestedSwiperConfig = {
                 direction: 'vertical',
