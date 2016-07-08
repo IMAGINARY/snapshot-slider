@@ -241,7 +241,7 @@
                 });
                 $(slide).append($slide_wrapper);
 
-                const verticalSwiper = $('<div class="swiper-container swiper-container-v"><div class="swiper-wrapper"></div></div>');
+                const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
                 const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
 
                 const isFrontPage = typeof config[i].isFrontPage != 'undefined' && config[i].isFrontPage == true;
@@ -271,6 +271,7 @@
                     div.classList.add("swiper-slide");
                     div.classList.add("swiper-slide-v");
                     const canvas = document.createElement("CANVAS");
+                    canvas.style.transform = 'translateZ(0)';
 
                     canvas.width = $(slide).width();
                     div.appendChild(canvas);
