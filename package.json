@@ -1,30 +1,36 @@
 {
     "name": "snapshot-slider",
+    "productName": "SNAPSHOT slider",
     "version": "0.1.0",
     "description": "A slider to present, print and email Snapshots of modern mathematics from Oberwolfach",
+    "bugs": { "url": "https://github.com/IMAGINARY/snapshot-slider/issues", "email": "info@imaginary.org" },
     "main": "main.js",
     "scripts": {
-        "start": "electron main.js"
+        "start": "electron main.js",
+        "pack": "build --dir",
+        "dist": "build"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/IMAGINARY/snapshot-slider.git"
     },
     "keywords": [
-        "Electron",
-        "quick",
-        "start",
-        "tutorial"
+        "SNAPSHOT",
+        "Oberwolfach",
+        "Mathematics",
+        "modern",
+        "slider"
     ],
-    "author": "IMAGINARY",
+    "author": "IMAGINARY gGmbH <info@imaginary.org>",
     "license": "Apache-2.0",
-    "bugs": {
-        "url": "https://github.com/IMAGINARY/snapshot-slider/issues"
-    },
+    "bugs": "https://github.com/IMAGINARY/snapshot-slider/issues",
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "devDependencies": {
         "electron-prebuilt": "^1.2.6",
         "electron-rebuild": "^1.4.0",
+        "electron-builder": "^10.5.0"
+    },
+    "dependencies": {
         "appdirectory": "^0.1.0",
         "jquery": "^2.2.4",
         "bootstrap": "^3.3.6",
@@ -40,5 +46,33 @@
         "string-template": "^1.0.0",
         "nodemailer": "^2.4.2",
         "font-awesome": "^4.6.3"
+    },
+    "build": {
+        "appId": "org.imaginary.snapshot-slider",
+        "mac": {
+            "category": "public.app-category.education"
+        },
+        "dmg": {
+            "window": {
+                "width": 530,
+                "height": 331
+            },
+            "contents": [{
+                "x": 145,
+                "y": 155
+            }, {
+                "x": 395,
+                "y": 155,
+                "type": "link",
+                "path": "/Applications"
+            }]
+        },
+        "linux": {
+            "executableName": "snapshot-slider",
+            "target": [ "AppImage", "deb", "rpm" ],
+            "category": "Education",
+            "packageCategory": "Education"
+        },
+        "extraFiles": [ "content", "resources", "cache.sh" ]
     }
 }
