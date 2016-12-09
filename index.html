@@ -40,8 +40,52 @@
             }
         });
 
+        window.fs = require('fs');
         window.path = require('path');
         window.childProcess = require('child_process');
+        window.appdirectory = require('appdirectory');
+        window.dirs = new appdirectory('snapshot-slider');
+        try {
+            fs.mkdirSync(dirs.userData());
+        } catch (err) {
+            if (err.code !== "EEXIST") // don't treat exisiting user data folder as error
+                throw err;
+        }
+        /*
+                console.log(dirs.userData());
+                console.log(dirs.userConfig());
+                console.log(dirs.userCache());
+                console.log(dirs.userLogs());
+        */
+        var request = require('request');
+
+        function download(url, dest) {
+            return new Promise((resolve, reject) => {
+                console.log(`Downloading ${url} to ${dest}`);
+                var file = fs.createWriteStream(dest);
+                var sendReq = request.get(url);
+
+                // verify response code
+                sendReq.on('response', response => {
+                    if (response.statusCode !== 200)
+                        reject(new Error(`Download of ${url} failed with response code`));
+                });
+
+                // check for request errors
+                sendReq.on('error', err => {
+                    fs.unlink(dest);
+                    reject(err);
+                }); // Delete the file async. (But we don't check the result)
+
+                sendReq.pipe(file);
+
+                file.on('finish', () => file.close(() => resolve(dest))); // close() is async, call resolve after close completes.
+                file.on('error', err => {
+                    fs.unlink(dest);
+                    reject(err);
+                }); // Delete the file async. (But we don't check the result)
+            });
+        };
     </script>
     <script src="libs/jqbtk.js"></script>
 </head>
@@ -114,24 +158,28 @@
                             resolve();
                         }
                         var basename = path.basename(c.pdfUrl, ".pdf");
-                        c.cachedPdf = "content/" + basename + ".pdf";
-                        c.cached2on1Pdf = "content/" + basename + "-2on1.pdf";
-                        c.cachedBookletPdf = "content/" + basename + "-booklet.pdf";
-                        if (!fileExists(c.cachedPdf)) {
-                            childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
-                                encoding: 'utf-8'
-                            }, (error, stdout, stderr) => {
-                                console.log(stdout);
-                                if (error) {
-                                    reject();
-                                    throw error;
-                                } else {
-                                    resolve_wrapper();
-                                }
-                            });
-                        } else {
-                            resolve_wrapper();
-                        }
+                        c.cachedPdf = path.join(dirs.userData(), `${basename}.pdf`);
+                        c.cached2on1Pdf = path.join(dirs.userData(), `${basename}-2on1.pdf`);
+                        c.cachedBookletPdf = path.join(dirs.userData(), `${basename}-booklet.pdf`);
+                        downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdfUrl, c.cachedPdf);
+                        downloadPromise.catch(reject);
+                        downloadPromise.then(filename => {
+                            if (!fileExists(c.cached2on1Pdf) || !fileExists(c.cachedBookletPdf)) {
+                                childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
+                                    encoding: 'utf-8'
+                                }, (error, stdout, stderr) => {
+                                    console.log(stdout);
+                                    if (error) {
+                                        reject();
+                                        throw error;
+                                    } else {
+                                        resolve_wrapper();
+                                    }
+                                });
+                            } else {
+                                resolve_wrapper();
+                            }
+                        });
                     }
                 ));
             }

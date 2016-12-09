@@ -24,6 +24,7 @@
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "devDependencies": {
         "electron-prebuilt": "^1.2.6",
+        "appdirectory": "^0.1.0",
         "jquery": "^2.2.4",
         "bootstrap": "^3.3.6",
         "bootbox": "^4.4.0",
