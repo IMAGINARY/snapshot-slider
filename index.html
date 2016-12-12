@@ -59,6 +59,7 @@
         */
         var request = require('request');
         var hummus = require('hummus');
+        var tempfile = require('tempfile');
 
         function download(url, dest) {
             return new Promise((resolve, reject) => {
@@ -219,16 +220,7 @@
                         c.cachedBookletPdf = path.join(dirs.userData(), `${basename}-booklet.pdf`);
                         downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdfUrl, c.cachedPdf);
                         downloadPromise.catch(reject);
-                        downloadPromise.then(filename => {
-                            if (!fileExists(c.cached2on1Pdf)) {
-                                createPDF2On1(c.cachedPdf, c.cached2on1Pdf);
-                            }
-                            if (!fileExists(c.cachedBookletPdf)) {
-                                createPDFBooklet(c.cachedPdf, c.cachedBookletPdf, true);
-                            } else {
-                                resolve_wrapper();
-                            }
-                        });
+                        downloadPromise.then(resolve_wrapper);
                     }
                 ));
             }
@@ -491,8 +483,10 @@
         }
 
         function print(which) {
-            console.log('printing ' + config[which].cachedBookletPdf);
-            console.log(childProcess.execSync('lp -o landscape -o media=a4 -o sides=two-sided-short-edge ' + config[which].cachedBookletPdf, {
+            console.log('printing ' + path.basename(config[which].cachedPdf));
+            var tmp = tempfile('.pdf');
+            createPDFBooklet( config[which].cachedPdf, tmp );
+            console.log(childProcess.execSync(`lp -o landscape -o media=a4 -o sides=two-sided-short-edge ${tmp} && rm ${tmp}`, {
                 encoding: 'utf-8'
             }));
         }
