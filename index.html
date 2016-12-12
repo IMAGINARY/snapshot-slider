@@ -58,6 +58,7 @@
                 console.log(dirs.userLogs());
         */
         var request = require('request');
+        var hummus = require('hummus');
 
         function download(url, dest) {
             return new Promise((resolve, reject) => {
@@ -86,6 +87,61 @@
                 }); // Delete the file async. (But we don't check the result)
             });
         };
+
+        function createPDF2On1(infile, outfile, pagesNumbers) {
+            console.log(`Creating 2-on-1 version of ${infile} at ${outfile}`);
+            var pdfWriter = hummus.createWriter(outfile, {
+                version: eval("hummus.ePDFVersion" + hummus.createReader(infile).getPDFLevel() * 10)
+            });
+            var copyingContext = pdfWriter.createPDFCopyingContext(infile);
+            var numPages = copyingContext.getSourceDocumentParser().getPagesCount();
+            var pagesNumbers = (typeof pagesNumbers !== 'undefined') ? pagesNumbers : Array.from(Array(numPages), (_, i) => i);
+
+            for (var i = 0; i < pagesNumbers.length;) {
+                var page = pdfWriter.createPage(0, 0, 842, 595);
+                var pageContent = pdfWriter.startPageContentContext(page);
+
+                if (pagesNumbers[i] >= 0) {
+                    pageContent.q().cm(1, 0, 0, 1, 0, 0);
+                    copyingContext.mergePDFPageToPage(page, pagesNumbers[i]);
+                    pageContent.Q();
+                }
+                ++i;
+                if (i < pagesNumbers.length && pagesNumbers[i] >= 0) {
+                    pageContent.q().cm(1, 0, 0, 1, 421, 0);
+                    copyingContext.mergePDFPageToPage(page, pagesNumbers[i]);
+                    pageContent.Q();
+                }
+                ++i;
+
+                pdfWriter.writePage(page);
+            }
+
+            pdfWriter.end();
+        }
+
+        function createPDFBooklet(infile, outfile, shiftLastPageToBackCover = true) {
+            console.log(`Creating booklet version of ${infile} at ${outfile}`);
+            var numPages = hummus.createReader(infile).getPagesCount();
+            var numBookletPages = Math.ceil(numPages / 4) * 4;
+
+            // compute bookelt page numbers
+            var pageNumbers = Array(0);
+            var segment = [numBookletPages - 1, 0, 1, numBookletPages - 2];
+            for (var i = 0; i < numBookletPages / 4; ++i) {
+                pageNumbers = pageNumbers.concat(segment);
+                segment = [segment[0] - 2, segment[1] + 2, segment[2] + 2, segment[3] - 2];
+            }
+
+            // move last page of input to last page of booklet if required
+            if (shiftLastPageToBackCover) {
+                pageNumbers = pageNumbers.map(i => i >= numPages - 1 ? -1 : i);
+                pageNumbers[0] = numPages - 1;
+            } else {
+                pageNumbers = pageNumbers.map(i => i > numPages - 1 ? -1 : i);
+            }
+            createPDF2On1(infile, outfile, pageNumbers);
+        }
     </script>
     <script src="libs/jqbtk.js"></script>
 </head>
@@ -164,18 +220,11 @@
                         downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdfUrl, c.cachedPdf);
                         downloadPromise.catch(reject);
                         downloadPromise.then(filename => {
-                            if (!fileExists(c.cached2on1Pdf) || !fileExists(c.cachedBookletPdf)) {
-                                childProcess.exec('2>&1 ./cache.sh ' + c.pdfUrl, {
-                                    encoding: 'utf-8'
-                                }, (error, stdout, stderr) => {
-                                    console.log(stdout);
-                                    if (error) {
-                                        reject();
-                                        throw error;
-                                    } else {
-                                        resolve_wrapper();
-                                    }
-                                });
+                            if (!fileExists(c.cached2on1Pdf)) {
+                                createPDF2On1(c.cachedPdf, c.cached2on1Pdf);
+                            }
+                            if (!fileExists(c.cachedBookletPdf)) {
+                                createPDFBooklet(c.cachedPdf, c.cachedBookletPdf, true);
                             } else {
                                 resolve_wrapper();
                             }

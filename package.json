@@ -24,11 +24,13 @@
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "devDependencies": {
         "electron-prebuilt": "^1.2.6",
+        "electron-rebuild": "^1.4.0",
         "appdirectory": "^0.1.0",
         "jquery": "^2.2.4",
         "bootstrap": "^3.3.6",
         "bootbox": "^4.4.0",
         "swiper": "^3.3.1",
+        "hummus": "^1.0.66",
         "pdfjs-dist": "^1.5.279",
         "qr-image": "^3.1.0",
         "html-to-text": "^2.1.0",

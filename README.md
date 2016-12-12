@@ -10,12 +10,13 @@ On Ubuntu 14.04, you can try the following installation procedure:
 ```bash
 curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 sudo apt-get update
-sudo apt-get install nodejs pdfjam bookletimposer git cups-client wget
+sudo apt-get install nodejs git cups-client
 cd /opt
 sudo git clone https://github.com/IMAGINRY/snapshot-slider
 cd snapshot-slider
 sudo chmod 777 content
 sudo npm install
+sudo ./node_modules/.bin/electron-rebuild
 ```
 
 Now you can run the program as a regular user:
