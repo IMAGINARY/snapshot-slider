@@ -31,6 +31,7 @@
         "bootbox": "^4.4.0",
         "swiper": "^3.3.1",
         "hummus": "^1.0.66",
+        "stream-buffers": "^3.0.1",
         "tempfile": "^1.1.1",
         "printer": "^0.2.2",
         "pdfjs-dist": "^1.5.279",
