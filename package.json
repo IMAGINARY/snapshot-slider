@@ -32,6 +32,7 @@
         "swiper": "^3.3.1",
         "hummus": "^1.0.66",
         "tempfile": "^1.1.1",
+        "printer": "^0.2.2",
         "pdfjs-dist": "^1.5.279",
         "qr-image": "^3.1.0",
         "html-to-text": "^2.1.0",

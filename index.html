@@ -60,6 +60,7 @@
         var request = require('request');
         var hummus = require('hummus');
         var tempfile = require('tempfile');
+        var printer = require('printer');
 
         function download(url, dest) {
             return new Promise((resolve, reject) => {
@@ -483,12 +484,28 @@
         }
 
         function print(which) {
-            console.log('printing ' + path.basename(config[which].cachedPdf));
-            var tmp = tempfile('.pdf');
-            createPDFBooklet( config[which].cachedPdf, tmp );
-            console.log(childProcess.execSync(`lp -o landscape -o media=a4 -o sides=two-sided-short-edge ${tmp} && rm ${tmp}`, {
-                encoding: 'utf-8'
-            }));
+            return new Promise((resolve, reject) => {
+                console.log('printing ' + path.basename(config[which].cachedPdf));
+                var tmp = tempfile('.pdf');
+                createPDFBooklet(config[which].cachedPdf, tmp);
+                printer.printFile({
+                    filename: tmp,
+                    type: 'PDF',
+                    options: {
+                        landscape: true,
+                        PageSize: 'A4',
+                        Duplex: 'DuplexTumble'
+                    },
+                    success: value => {
+                        fs.unlink(tmp);
+                        resolve(value);
+                    },
+                    error: reason => {
+                        fs.unlink(tmp);
+                        reject(reason);
+                    }
+                });
+            });
         }
 
         function email(which) {
