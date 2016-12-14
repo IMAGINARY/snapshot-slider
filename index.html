@@ -41,22 +41,10 @@
         });
 
         window.fs = require('fs');
+        window.fsExtra = require('fs-extra');
         window.path = require('path');
         window.childProcess = require('child_process');
-        window.appdirectory = require('appdirectory');
-        window.dirs = new appdirectory('snapshot-slider');
-        try {
-            fs.mkdirSync(dirs.userData());
-        } catch (err) {
-            if (err.code !== "EEXIST") // don't treat exisiting user data folder as error
-                throw err;
-        }
-        /*
-                console.log(dirs.userData());
-                console.log(dirs.userConfig());
-                console.log(dirs.userCache());
-                console.log(dirs.userLogs());
-        */
+        window.settings = require('electron-settings');
         var request = require('request');
         var hummus = require('hummus');
         var streamBuffers = require('stream-buffers');
@@ -210,6 +198,11 @@
 
         function initCache() {
             var promises = [];
+            var suffix = "pdfCache";
+            var dirname = path.join(path.dirname(settings.getSettingsFilePath()), suffix);
+            fsExtra.mkdirpSync(dirname, {
+                mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+            });
             for (var i = 0; i < config.length; ++i) {
                 const c = config[i];
                 promises.push(new Promise(
@@ -219,9 +212,7 @@
                             resolve();
                         }
                         var basename = path.basename(c.pdfUrl, ".pdf");
-                        c.cachedPdf = path.join(dirs.userData(), `${basename}.pdf`);
-                        c.cached2on1Pdf = path.join(dirs.userData(), `${basename}-2on1.pdf`);
-                        c.cachedBookletPdf = path.join(dirs.userData(), `${basename}-booklet.pdf`);
+                        c.cachedPdf = path.join(dirname, `${basename}.pdf`);
                         downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdfUrl, c.cachedPdf);
                         downloadPromise.catch(reject);
                         downloadPromise.then(resolve_wrapper);

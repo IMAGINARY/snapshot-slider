@@ -19,7 +19,7 @@ sudo ./node_modules/.bin/electron-rebuild
 
 Now you can run the program as a regular user:
 ```bash
-npm start
+npm run start
 ```
 
 ## License [Apache License Version 2.0](LICENSE)

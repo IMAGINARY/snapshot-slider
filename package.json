@@ -3,17 +3,13 @@
     "productName": "SNAPSHOT slider",
     "version": "0.1.0",
     "description": "A slider to present, print and email Snapshots of modern mathematics from Oberwolfach",
-    "bugs": { "url": "https://github.com/IMAGINARY/snapshot-slider/issues", "email": "info@imaginary.org" },
-    "main": "main.js",
-    "scripts": {
-        "start": "electron main.js",
-        "pack": "build --dir",
-        "dist": "build"
-    },
+    "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/IMAGINARY/snapshot-slider.git"
     },
+    "bugs": { "url": "https://github.com/IMAGINARY/snapshot-slider/issues", "email": "info@imaginary.org" },
+    "main": "main.js",
     "keywords": [
         "SNAPSHOT",
         "Oberwolfach",
@@ -23,21 +19,20 @@
     ],
     "author": "IMAGINARY gGmbH <info@imaginary.org>",
     "license": "Apache-2.0",
-    "bugs": "https://github.com/IMAGINARY/snapshot-slider/issues",
-    "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "devDependencies": {
         "electron-prebuilt": "^1.2.6",
         "electron-rebuild": "^1.4.0",
         "electron-builder": "^10.5.0"
     },
     "dependencies": {
-        "appdirectory": "^0.1.0",
+        "electron-settings": "^2.2.2",
         "jquery": "^2.2.4",
         "bootstrap": "^3.3.6",
         "bootbox": "^4.4.0",
         "swiper": "^3.3.1",
         "hummus": "^1.0.66",
         "stream-buffers": "^3.0.1",
+        "fs-extra": "^1.0.0",
         "tempfile": "^1.1.1",
         "printer": "^0.2.2",
         "pdfjs-dist": "^1.5.279",
@@ -46,6 +41,12 @@
         "string-template": "^1.0.0",
         "nodemailer": "^2.4.2",
         "font-awesome": "^4.6.3"
+    },
+    "scripts": {
+        "start": "electron .",
+        "rebuild": "electron-rebuild",
+        "pack": "build --dir",
+        "dist": "build"
     },
     "build": {
         "appId": "org.imaginary.snapshot-slider",
