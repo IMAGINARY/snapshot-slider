@@ -184,6 +184,16 @@
         var nestedSwipers = [];
 
         function rearrangeConfig() {
+            if (miscConfig.snapshots.sort.enable) {
+                var sortConfig = miscConfig.snapshots.sort;
+                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null )
+                    sortConfig.compareFunction = `(a,b) => a.${sortConfig.by}.localeCompare(b.${sortConfig.by})`;
+                articles = articles.sort(eval(sortConfig.compareFunction));
+            }
+
+            if (miscConfig.snapshots.filter.enable)
+                articles = articles.filter(eval(miscConfig.snapshots.filter.filterFunction));
+
             // reverse order such that oldest items come first
             articles.reverse();
 
