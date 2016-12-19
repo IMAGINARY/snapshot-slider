@@ -1,0 +1,477 @@
+{
+    "idleModeDelayMs": 180000,
+    "idleModeDelayBetweenActionsMs": 8000,
+    "idleAnimationDurationMs": 1000,
+    "print": {
+        "enable": true
+    },
+    "mail": {
+        "enable": true,
+        "senderName": "Snapshot station",
+        "senderAddress": "snapshot-station@imaginary.org",
+        "defaultRecipientName": "IMAGINARY user",
+        "subject": "Snapshots of modern mathematics from Oberwolfach",
+        "text": null,
+        "html": [
+            "<html>",
+            "<body lang=\"EN-US\" xml:lang=\"EN-US\">",
+            "    <p>Dear {defaultRecipientName},</p>",
+            "",
+            "    <p>",
+            "        thank you for visiting our snapshots station, which is part of the",
+            "        <a href=\"https://imaginary.org/\" target=\"_blank\">IMAGINARY exhibition</a>.",
+            "    </p>",
+            "",
+            "    <p>",
+            "        The <u>snapshots of modern mathematics from Oberwolfach</u> are short texts on aspects of modern mathematics written by researchers visiting the <u>Mathematisches Forschungsinstitut Oberwolfach (MFO)</u> and edited for accessibility and understandability.",
+            "    </p>",
+            "",
+            "    <p>",
+            "        You are/were looking at the following snapshot:",
+            "        <br />",
+            "        <a href=\"{websiteUrl}\" target=\"_blank\">{websiteUrl}</a>",
+            "        <br /> which can be downloaded as pdf here:",
+            "        <br />",
+            "        <a href=\"{pdfUrl}\" target=\"_blank\">{pdfUrl}</a>",
+            "    </p>",
+            "",
+            "    <p>",
+            "        If you are interested in translating this snapshot, please contact us at",
+            "        <a href=\"mailto:snapshots-translation@imaginary.org\" target=\"_blank\">snapshots-translation@imaginary.org</a>. For more snapshots, visit our",
+            "        <a href=\"https://imaginary.org/snapshots\" target=\"_blank\">snapshots section</a> on the",
+            "        <a href=\"https://imaginary.org/\" target=\"_blank\">IMAGINARY platform</a>. You can also",
+            "        <a href=\"https://www.mfo.de/math-in-public/snapshots/files/RSS\" target=\"_blank\">subscribe</a> to the RSS feed and stay up-to-date with the latest snapshots.",
+            "    </p>",
+            "",
+            "    <p>",
+            "        Thank you,",
+            "        <br /> your IMAGINARY team",
+            "    </p>",
+            "</body>",
+            "</html>"
+        ],
+        "smtp": {
+            "host": "mail.example.com",
+            "port": 465,
+            "secure": true,
+            "tls": {
+                "rejectUnauthorized": false,
+                "requestCert": true
+            },
+            "auth": {
+                "user": "user@example.com",
+                "pass": "abc123"
+            },
+            "debug": true
+        }
+    },
+    "snapshots": {
+        "frontPage": {
+            "title": "Snapshots of modern mathematics from Oberwolfach",
+            "url": "https://imaginary.org/snapshots",
+            "url_short": "https://imaginary.org/snapshots",
+            "pdf": "https://github.com/IMAGINARY/snapshot-slider/files/328238/intro-page.pdf",
+            "authors": [
+                "Mathematisches Forschungsinstitut Oberwolfach"
+            ],
+            "doi": null
+        },
+        "sort": {
+            "enable": true,
+            "by": "doi",
+            "compareFunction": "(a,b) => a.doi.toUpperCase().localeCompare(b.doi.toUpperCase())"
+        },
+        "filter": {
+            "enable": false,
+            "filterFunction": "(a) => a.doi.endsWith(\"EN\")"
+        },
+        "autoUpdate": {
+            "enable": false,
+            "url": "https://imaginary.org/api/snapshots.json"
+        },
+        "articles": [{
+            "title": "Dirichlet Series",
+            "url": "https://imaginary.org/snapshot/dirichlet-series",
+            "url_short": "https://imaginary.org/node/595",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-001.pdf",
+            "authors": [
+                "John E. McCarthy"
+            ],
+            "doi": "10.14760/SNAP-2014-001-EN"
+        }, {
+            "title": "Matrixfaktorisierungen",
+            "url": "https://imaginary.org/snapshot/matrixfaktorisierungen",
+            "url_short": "https://imaginary.org/node/596",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-002.pdf",
+            "authors": [
+                "Wolfgang Lerche"
+            ],
+            "doi": "10.14760/SNAP-2014-002-EN"
+        }, {
+            "title": "The ternary Goldbach Problem",
+            "url": "https://imaginary.org/snapshot/the-ternary-goldbach-problem",
+            "url_short": "https://imaginary.org/node/598",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-003.pdf",
+            "authors": [
+                "Harald Helfgott"
+            ],
+            "doi": "10.14760/SNAP-2014-003-EN"
+        }, {
+            "title": "Modelling communication and movement: from cells to animals and humans",
+            "url": "https://imaginary.org/snapshot/modelling-communication-and-movement-from-cells-to-animals-and-humans",
+            "url_short": "https://imaginary.org/node/685",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/communication_1.pdf",
+            "authors": [
+                "Raluca Eftimie"
+            ],
+            "doi": "10.14760/SNAP-2015-006-EN"
+        }, {
+            "title": "Chaos and chaotic fluid mixing",
+            "url": "https://imaginary.org/snapshot/chaos-and-chaotic-fluid-mixing",
+            "url_short": "https://imaginary.org/node/707",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-005.pdf",
+            "authors": [
+                "Tom Solomon"
+            ],
+            "doi": "10.14760/SNAP-2015-005-EN"
+        }, {
+            "title": "Friezes and tilings",
+            "url": "https://imaginary.org/snapshot/friezes-and-tilings",
+            "url_short": "https://imaginary.org/node/722",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-004.pdf",
+            "authors": [
+                "Thorsten Holm"
+            ],
+            "doi": "10.14760/SNAP-2015-004-EN"
+        }, {
+            "title": "Billiards and flat surfaces",
+            "url": "https://imaginary.org/snapshot/billiards-and-flat-surfaces",
+            "url_short": "https://imaginary.org/node/729",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-001_0.pdf",
+            "authors": [
+                "Diana Davis"
+            ],
+            "doi": "10.14760/SNAP-2015-001-EN"
+        }, {
+            "title": "What does \">\" really mean?",
+            "url": "https://imaginary.org/snapshot/what-does-really-mean",
+            "url_short": "https://imaginary.org/node/730",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-004_0.pdf",
+            "authors": [
+                "Bruce Reznick"
+            ],
+            "doi": "10.14760/SNAP-2014-004-EN"
+        }, {
+            "title": "Arrangements of lines",
+            "url": "https://imaginary.org/snapshot/arrangements-of-lines",
+            "url_short": "https://imaginary.org/node/757",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-005.pdf",
+            "authors": [
+                "Brian Harbourne",
+                "Thomas Szemberg"
+            ],
+            "doi": "10.14760/SNAP-2014-005-EN"
+        }, {
+            "title": "Minimizing energy",
+            "url": "https://imaginary.org/snapshot/minimizing-energy",
+            "url_short": "https://imaginary.org/node/758",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-002.pdf",
+            "authors": [
+                "Christine Breiner"
+            ],
+            "doi": "10.14760/SNAP-2015-002-EN"
+        }, {
+            "title": "Statistics and dynamical phenomena",
+            "url": "https://imaginary.org/snapshot/statistics-and-dynamical-phenomena",
+            "url_short": "https://imaginary.org/node/783",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-006.pdf",
+            "authors": [
+                "Howell Tong"
+            ],
+            "doi": "10.14760/SNAP-2014-006-EN"
+        }, {
+            "title": "Swallowtail on the shore",
+            "url": "https://imaginary.org/snapshot/swallowtail-on-the-shore",
+            "url_short": "https://imaginary.org/node/787",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-007.pdf",
+            "authors": [
+                "Ragnar-Olaf Buchweitz",
+                "Eleonore Faber"
+            ],
+            "doi": "10.14760/SNAP-2014-007-EN"
+        }, {
+            "title": "The Kadison-Singer problem",
+            "url": "https://imaginary.org/snapshot/the-kadison-singer-problem",
+            "url_short": "https://imaginary.org/node/799",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-008.pdf",
+            "authors": [
+                "Alain Valette"
+            ],
+            "doi": "10.14760/SNAP-2014-008-EN"
+        }, {
+            "title": "Operator theory and the singular value decomposition",
+            "url": "https://imaginary.org/snapshot/operator-theory-and-the-singular-value-decomposition",
+            "url_short": "https://imaginary.org/node/800",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-009.pdf",
+            "authors": [
+                "Gregory Knese"
+            ],
+            "doi": "10.14760/SNAP-2014-009-EN"
+        }, {
+            "title": "Drugs, herbicides, and numerical simulation",
+            "url": "https://imaginary.org/snapshot/drugs-herbicides-and-numerical-simulation",
+            "url_short": "https://imaginary.org/node/804",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2014-010.pdf",
+            "authors": [
+                "Peter Benner",
+                "Hermann  Mena",
+                "Ren\u00e9 Schneider"
+            ],
+            "doi": "10.14760/SNAP-2014-010-EN"
+        }, {
+            "title": "Zero-dimensional symmetry",
+            "url": "https://imaginary.org/snapshot/zero-dimensional-symmetry",
+            "url_short": "https://imaginary.org/node/820",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-003.pdf",
+            "authors": [
+                "George Willis"
+            ],
+            "doi": "10.14760/SNAP-2015-003-EN"
+        }, {
+            "title": "Ideas of Newton-Okounkov bodies",
+            "url": "https://imaginary.org/snapshot/ideas-of-newton-okounkov-bodies",
+            "url_short": "https://imaginary.org/node/940",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-008.pdf",
+            "authors": [
+                "Valentina  Kiritchenko",
+                "Evgeny  Smirnov",
+                "Vladlen  Timorin"
+            ],
+            "doi": "10.14760/SNAP-2015-008-EN"
+        }, {
+            "title": " Darcy\u2019s law and groundwater flow modelling",
+            "url": "https://imaginary.org/snapshot/darcys-law-and-groundwater-flow-modelling",
+            "url_short": "https://imaginary.org/node/941",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-007.pdf",
+            "authors": [
+                "Ben Schweizer"
+            ],
+            "doi": "10.14760/SNAP-2015-007-EN"
+        }, {
+            "title": "How to choose a winner : the mathematics of social choice",
+            "url": "https://imaginary.org/snapshot/how-to-choose-a-winner-the-mathematics-of-social-choice",
+            "url_short": "https://imaginary.org/node/948",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-009-powers.pdf",
+            "authors": [
+                "Victoria  Powers"
+            ],
+            "doi": "10.14760/SNAP-2015-009-EN"
+        }, {
+            "title": "Special values of zeta functions and areas of triangles",
+            "url": "https://imaginary.org/snapshot/special-values-of-zeta-functions-and-areas-of-triangles",
+            "url_short": "https://imaginary.org/node/952",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-010-pippich-kramer.pdf",
+            "authors": [
+                "J\u00fcrg Kramer",
+                "Anna-Maria Pippich"
+            ],
+            "doi": "10.14760/SNAP-2015-010-EN"
+        }, {
+            "title": "Curriculum development in university mathematics: where mathematicians and education collide",
+            "url": "https://imaginary.org/snapshot/curriculum-development-in-university-mathematics-where-mathematicians-and-education-collide",
+            "url_short": "https://imaginary.org/node/954",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-011-sangwin.pdf",
+            "authors": [
+                "Christopher Sangwin"
+            ],
+            "doi": "10.14760/SNAP-2015-011-EN"
+        }, {
+            "title": "Visual Analysis of Spanish Male Mortality",
+            "url": "https://imaginary.org/snapshot/visual-analysis-of-spanish-male-mortality",
+            "url_short": "https://imaginary.org/node/955",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-012-marron.pdf",
+            "authors": [
+                "J. Marron"
+            ],
+            "doi": "10.14760/SNAP-2015-012-EN"
+        }, {
+            "title": "Modelling the spread of brain tumours",
+            "url": "https://imaginary.org/snapshot/modelling-the-spread-of-brain-tumours",
+            "url_short": "https://imaginary.org/node/959",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-013-swan-murtha.pdf",
+            "authors": [
+                "Amanda  Swan",
+                "Albert Murtha"
+            ],
+            "doi": "10.14760/SNAP-2015-013-EN"
+        }, {
+            "title": "Quantum diffusion",
+            "url": "https://imaginary.org/snapshot/quantum-diffusion",
+            "url_short": "https://imaginary.org/node/991",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2015-014-knowles.pdf",
+            "authors": [
+                "Antti Knowles"
+            ],
+            "doi": "10.14760/SNAP-2015-014-EN"
+        }, {
+            "title": "Domino tilings of the Aztec Diamond",
+            "url": "https://imaginary.org/snapshot/domino-tilings-of-the-aztec-diamond",
+            "url_short": "https://imaginary.org/node/992",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-016.pdf",
+            "authors": [
+                "Juanjo Ru\u00e9"
+            ],
+            "doi": "10.14760/SNAP-2015-016-EN"
+        }, {
+            "title": "The mystery of sleeping sickness \u2013 why does it keep waking up?",
+            "url": "https://imaginary.org/snapshot/the-mystery-of-sleeping-sickness-why-does-it-keep-waking-up",
+            "url_short": "https://imaginary.org/node/993",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-015.pdf",
+            "authors": [
+                "Sebastian Funk"
+            ],
+            "doi": "10.14760/SNAP-2015-015-EN"
+        }, {
+            "title": "From computer algorithms to quantum field theory: an introduction to operads",
+            "url": "https://imaginary.org/snapshot/from-computer-algorithms-to-quantum-field-theory-an-introduction-to-operads",
+            "url_short": "https://imaginary.org/node/998",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2015-017.pdf",
+            "authors": [
+                "Ulrich Kr\u00e4hmer"
+            ],
+            "doi": "10.14760/SNAP-2015-017-EN"
+        }, {
+            "title": "Swarming robots",
+            "url": "https://imaginary.org/snapshot/swarming-robots",
+            "url_short": "https://imaginary.org/node/1016",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-001.pdf",
+            "authors": [
+                "Magnus Egerstedt"
+            ],
+            "doi": "10.14760/SNAP-2016-001-EN"
+        }, {
+            "title": " Random sampling of domino and lozenge tilings",
+            "url": "https://imaginary.org/snapshot/random-sampling-of-domino-and-lozenge-tilings",
+            "url_short": "https://imaginary.org/node/1019",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-002-fusy.pdf",
+            "authors": [
+                "\u00c9ric Fusy "
+            ],
+            "doi": "10.14760/SNAP-2016-002-EN"
+        }, {
+            "title": "On the containment problem",
+            "url": "https://imaginary.org/snapshot/on-the-containment-problem",
+            "url_short": "https://imaginary.org/node/1035",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-003-szemberg-szpond.pdf",
+            "authors": [
+                "Tomasz  Szemberg"
+            ],
+            "doi": "10.14760/SNAP-2016-003-EN"
+        }, {
+            "title": "Das Problem der Kugelpackung",
+            "url": "https://imaginary.org/snapshot/das-problem-der-kugelpackung",
+            "url_short": "https://imaginary.org/node/1043",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-004-dostert-rolfes-krupp.pdf",
+            "authors": [
+                "Maria Dostert",
+                "Stefan  Krupp",
+                "Jan Hendrick Rolfes"
+            ],
+            "doi": "10.14760/SNAP-2016-004-EN"
+        }, {
+            "title": "Symmetry and characters of finite groups",
+            "url": "https://imaginary.org/snapshot/symmetry-and-characters-of-finite-groups",
+            "url_short": "https://imaginary.org/node/1048",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-005-gianelli-taylor.pdf",
+            "authors": [
+                "Eugenio  Giannelli",
+                "Jay Taylor"
+            ],
+            "doi": "10.14760/SNAP-2016-005-EN"
+        }, {
+            "title": "High performance computing on smartphones",
+            "url": "https://imaginary.org/snapshot/high-performance-computing-on-smartphones",
+            "url_short": "https://imaginary.org/node/1053",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-006-urban-patera.pdf",
+            "authors": [
+                "Anthony T Patera",
+                "Karsten Urban"
+            ],
+            "doi": "10.14760/SNAP-2016-006-EN"
+        }, {
+            "title": " Fokus-Erkennung bei Epilepsiepatienten mithilfe moderner Verfahren der Zeitreihenanalyse",
+            "url": "https://imaginary.org/snapshot/fokus-erkennung-bei-epilepsiepatienten-mithilfe-moderner-verfahren-der-zeitreihenanalyse",
+            "url_short": "https://imaginary.org/node/1065",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-008-deistler-graef.pdf",
+            "authors": [
+                "Manfred  Deistler",
+                "Andreas Graef"
+            ],
+            "doi": "10.14760/SNAP-2016-008-EN"
+        }, {
+            "title": "Polyhedra and commensurability",
+            "url": "https://imaginary.org/snapshot/polyhedra-and-commensurability",
+            "url_short": "https://imaginary.org/node/1071",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/2016-009-guglielmetti-jacquemet.pdf",
+            "authors": [
+                "Rafael  Guglielmetti",
+                "Matthieu  Jacquemet"
+            ],
+            "doi": "10.14760/SNAP-2016-009-EN"
+        }, {
+            "title": "Prime Tuples in Function Fields",
+            "url": "https://imaginary.org/snapshot/prime-tuples-in-function-fields",
+            "url_short": "https://imaginary.org/node/1131",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-010-bary-soroker.pdf",
+            "authors": [
+                "Lior Bary-Soroker"
+            ],
+            "doi": "10.14760/SNAP-2016-010-EN"
+        }, {
+            "title": "The Willmore Conjecture",
+            "url": "https://imaginary.org/snapshot/the-willmore-conjecture",
+            "url_short": "https://imaginary.org/node/1165",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-011-nowaczyk.pdf",
+            "authors": [
+                "Nikolai Nowaczyk"
+            ],
+            "doi": "10.14760/SNAP-2016-011-EN"
+        }, {
+            "title": "Footballs and donuts in four dimensions",
+            "url": "https://imaginary.org/snapshot/footballs-and-donuts-in-four-dimensions",
+            "url_short": "https://imaginary.org/node/1166",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-012-klee.pdf",
+            "authors": [
+                "Steven Klee"
+            ],
+            "doi": "10.14760/SNAP-2016-012-EN"
+        }, {
+            "title": "The adaptive finite element method",
+            "url": "https://imaginary.org/snapshot/the-adaptive-finite-element-method",
+            "url_short": "https://imaginary.org/node/1167",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-013-gallistl.pdf",
+            "authors": [
+                "Dietmar Gallistl"
+            ],
+            "doi": "10.14760/SNAP-2016-013-EN"
+        }, {
+            "title": "Profinite groups",
+            "url": "https://imaginary.org/snapshot/profinite-groups",
+            "url_short": "https://imaginary.org/node/1178",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-014-bartholdi.pdf",
+            "authors": [
+                "Laurent Bartholdi"
+            ],
+            "doi": "10.14760/SNAP-2016-014-EN"
+        }, {
+            "title": "Towards a Mathematical Theory of Turbulence in Fluids",
+            "url": "https://imaginary.org/snapshot/towards-a-mathematical-theory-of-turbulence-in-fluids",
+            "url_short": "https://imaginary.org/node/1181",
+            "pdf": "https://imaginary.org/sites/default/files/snapshots/snapshot-2016-015-bedrossian.pdf",
+            "authors": [
+                "Jacob Bedrossian"
+            ],
+            "doi": "10.14760/SNAP-2016-015-EN"
+        }]
+    }
+}

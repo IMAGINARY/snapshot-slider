@@ -10,11 +10,22 @@
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="main.css">
-    <script src="config.js"></script>
-    <script src="smtp_config.js"></script>
 
     <!-- load some node.js packages -->
     <script>
+        window.settings = require('electron-settings');
+        settings.defaults(require("./defaults.json"));
+        settings.applyDefaults({
+            prettify: true
+        });
+        var miscConfig = settings.getSync("");
+        var articles = miscConfig.snapshots.articles;
+        var mailConfig = miscConfig.mail;
+        if (typeof mailConfig.text !== "undefined" && mailConfig.text !== null)
+            mailConfig.text = mailConfig.text.join("\n");
+        if (typeof mailConfig.html !== "undefined" && mailConfig.html !== null)
+            mailConfig.html = mailConfig.html.join("\n");
+
         window.$ = window.jQuery = require("jquery");
         require('bootstrap');
         window.bootbox = require('bootbox');
@@ -29,7 +40,7 @@
         window.PDFJS.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
 
         // create reusable transporter object using the default SMTP transport
-        window.transporter = nodemailer.createTransport(smtpConfig);
+        window.transporter = nodemailer.createTransport(mailConfig.smtp);
 
         // verify connection configuration
         transporter.verify(function(error, success) {
@@ -41,22 +52,9 @@
         });
 
         window.fs = require('fs');
+        window.fsExtra = require('fs-extra');
         window.path = require('path');
         window.childProcess = require('child_process');
-        window.appdirectory = require('appdirectory');
-        window.dirs = new appdirectory('snapshot-slider');
-        try {
-            fs.mkdirSync(dirs.userData());
-        } catch (err) {
-            if (err.code !== "EEXIST") // don't treat exisiting user data folder as error
-                throw err;
-        }
-        /*
-                console.log(dirs.userData());
-                console.log(dirs.userConfig());
-                console.log(dirs.userCache());
-                console.log(dirs.userLogs());
-        */
         var request = require('request');
         var hummus = require('hummus');
         var streamBuffers = require('stream-buffers');
@@ -186,17 +184,28 @@
         var nestedSwipers = [];
 
         function rearrangeConfig() {
-            // reverse order such that oldest items come first
-            config.reverse();
+            if (miscConfig.snapshots.sort.enable) {
+                var sortConfig = miscConfig.snapshots.sort;
+                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null )
+                    sortConfig.compareFunction = `(a,b) => a.${sortConfig.by}.localeCompare(b.${sortConfig.by})`;
+                articles = articles.sort(eval(sortConfig.compareFunction));
+            }
 
-            // put overview page to the beginning again
-            var overviewElem = config.pop();
-            config.unshift(overviewElem);
+            if (miscConfig.snapshots.filter.enable)
+                articles = articles.filter(eval(miscConfig.snapshots.filter.filterFunction));
+
+            // reverse order such that oldest items come first
+            articles.reverse();
+
+            // put overview page to the beginning
+            var frontPage = settings.getSync("snapshots.frontPage");
+            frontPage.isFrontPage = true;
+            articles.unshift(frontPage);
 
             // move ~half of the slides from the end to the beginning
-            for (swiperInitialSlide = 0; swiperInitialSlide < Math.floor(config.length / 2); ++swiperInitialSlide) {
-                var elem = config.pop();
-                config.unshift(elem);
+            for (swiperInitialSlide = 0; swiperInitialSlide < Math.floor(articles.length / 2); ++swiperInitialSlide) {
+                var elem = articles.pop();
+                articles.unshift(elem);
             }
         }
 
@@ -210,19 +219,22 @@
 
         function initCache() {
             var promises = [];
-            for (var i = 0; i < config.length; ++i) {
-                const c = config[i];
+            var suffix = "pdfCache";
+            var dirname = path.join(path.dirname(settings.getSettingsFilePath()), suffix);
+            fsExtra.mkdirpSync(dirname, {
+                mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+            });
+            for (var i = 0; i < articles.length; ++i) {
+                const c = articles[i];
                 promises.push(new Promise(
                     function(resolve, reject) {
                         const resolve_wrapper = () => {
-                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1 + ' of ' + config.length);
+                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1 + ' of ' + articles.length);
                             resolve();
                         }
-                        var basename = path.basename(c.pdfUrl, ".pdf");
-                        c.cachedPdf = path.join(dirs.userData(), `${basename}.pdf`);
-                        c.cached2on1Pdf = path.join(dirs.userData(), `${basename}-2on1.pdf`);
-                        c.cachedBookletPdf = path.join(dirs.userData(), `${basename}-booklet.pdf`);
-                        downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdfUrl, c.cachedPdf);
+                        var basename = path.basename(c.pdf, ".pdf");
+                        c.cachedPdf = path.join(dirname, `${basename}.pdf`);
+                        downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdf, c.cachedPdf);
                         downloadPromise.catch(reject);
                         downloadPromise.then(resolve_wrapper);
                     }
@@ -265,7 +277,7 @@
                 spaceBetween: 78,
                 initialSlide: swiperInitialSlide,
                 loop: true,
-                loopedSlides: config.length,
+                loopedSlides: articles.length,
                 freeModeSticky: true,
                 freeModeMomentumRatio: 0.25,
                 centeredSlides: true,
@@ -297,18 +309,18 @@
             $(swiper.slides).filter('.swiper-slide-duplicate').find('.swiper-container').remove();
         }
 
-        var documents = new Array(config.length);
+        var documents = new Array(articles.length);
         var totalNumPages = 0;
 
         function initDocuments() {
             var promises = [];
-            for (var i = 0; i < config.length; ++i) {
+            for (var i = 0; i < articles.length; ++i) {
                 const local_i = i;
-                var promise = PDFJS.getDocument(config[local_i].cachedPdf).promise;
+                var promise = PDFJS.getDocument(articles[local_i].cachedPdf).promise;
                 promise.then(function(pdf) {
                     documents[local_i] = pdf;
                     totalNumPages += pdf.numPages;
-                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1 + ' of ' + config.length);
+                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1 + ' of ' + articles.length);
                 });
                 promises.push(promise);
             }
@@ -324,7 +336,7 @@
             var pagePromises = [];
             var renderPromises = [];
 
-            for (var i = 0; i < config.length; ++i) {
+            for (var i = 0; i < articles.length; ++i) {
                 const slide = document.createElement("DIV");
                 slide.classList.add("swiper-slide");
                 slide.classList.add("swiper-slide-h");
@@ -337,7 +349,7 @@
                 const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
                 const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
 
-                const isFrontPage = typeof config[i].isFrontPage != 'undefined' && config[i].isFrontPage == true;
+                const isFrontPage = typeof articles[i].isFrontPage != 'undefined' && articles[i].isFrontPage == true;
 
                 $slide_wrapper.append(verticalSwiper);
                 const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
@@ -348,7 +360,7 @@
                     buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
 
                 // add QR code
-                var svgObject = $(qrImage.imageSync(config[i].shortWebsiteUrl, {
+                var svgObject = $(qrImage.imageSync(articles[i].url_short, {
                     type: 'svg',
                     size: 2
                 }));
@@ -440,7 +452,7 @@
 
         function idleAction() {
             bootbox.hideAll();
-            nestedSwipers[(swiper.activeIndex + 2) % config.length].slideTo(0, 0);
+            nestedSwipers[(swiper.activeIndex + 2) % articles.length].slideTo(0, 0);
             swiper.slideNext(true, miscConfig.idleAnimationDurationMs);
         }
 
@@ -477,7 +489,7 @@
         function switchToPrintMode(which) {
             bootbox.confirm({
                 title: 'Confirm printing',
-                message: `<p class="dialog">Do you want to print: <em>"<b>${config[which].author.trim()}:</b> ${config[which].title.trim()}"</em>?<p>`,
+                message: `<p class="dialog">Do you want to print: <em>"<b>${articles[which].authors.map( a => a.trim() ).join(", ")}:</b> ${articles[which].title.trim()}"</em>?<p>`,
                 callback: function(result) {
                     if (result) {
                         print(which);
@@ -488,12 +500,12 @@
 
         function print(which) {
             return new Promise((resolve, reject) => {
-                console.log('printing ' + path.basename(config[which].cachedPdf));
+                console.log('printing ' + path.basename(articles[which].cachedPdf));
                 streamBuffer = new streamBuffers.WritableStreamBuffer({
                     initialSize: (1000 * 1024), // start at 100 kilobytes.
                     incrementAmount: (100 * 1024) // grow by 10 kilobytes each time buffer overflows.
                 });
-                createPDFBooklet(config[which].cachedPdf, streamBuffer);
+                createPDFBooklet(articles[which].cachedPdf, streamBuffer);
                 printer.printDirect({
                     data: streamBuffer.getContents(),
                     type: 'PDF',
@@ -509,21 +521,21 @@
         }
 
         function email(which) {
-            var c = config[which];
+            var c = articles[which];
 
-            console.log('mailing ' + c.websiteUrl + ' to ' + recipientAddress);
-            console.log(smtpConfig);
+            console.log('mailing ' + c.url + ' to ' + recipientAddress);
+            console.log(mailConfig.smtp);
 
             const substUrls = function(s) {
                 return format(s, {
-                    websiteUrl: c.websiteUrl,
-                    pdfUrl: c.pdfUrl,
+                    websiteUrl: c.url,
+                    pdfUrl: c.pdf,
                     defaultRecipientName: recipientName != '' ? recipientName : mailConfig.defaultRecipientName
                 });
             };
 
             var formattedHtml = substUrls(mailConfig.html);
-            var formattedText = typeof mailConfig.text != 'undefined' ? substUrls(mailConfig.text) : htmlToText.fromString(formattedHtml, {
+            var formattedText = typeof mailConfig.text !== 'undefined' && mailConfig.text != null ? substUrls(mailConfig.text) : htmlToText.fromString(formattedHtml, {
                 hideLinkHrefIfSameAsText: true
             });
 
