@@ -256,9 +256,10 @@
                         outline: 'none'
                     });
                     for (var i = swiper.activeIndex - 3; i <= swiper.activeIndex + 3; i++) {
-                        const $slide = $(swiper.slides[i % swiper.slides.length]);
-                        $(nestedSwipers[$slide.attr("data-swiper-slide-index")].container[0]).prependTo($slide.find(".slide-wrapper"));
-                        console.log($slide.attr("data-swiper-slide-index") + " -> " + i % swiper.slides.length);
+                        const slide = swiper.slides[i % swiper.slides.length];
+                        const nestedSwiper = nestedSwipers[slide.getAttribute("data-swiper-slide-index")].container[0];
+                        slide.getElementsByClassName("slide-wrapper")[0].appendChild(nestedSwiper);
+                        console.log(slide.getAttribute("data-swiper-slide-index") + " -> " + i % swiper.slides.length);
                     }
                     lastActiveIndex = swiper.activeIndex;
                 }
