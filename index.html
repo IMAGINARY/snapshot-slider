@@ -9,10 +9,12 @@
     <link rel="stylesheet" href="libs/jqbtk.min.css">
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="node_modules/animate.css/animate.min.css">
     <link rel="stylesheet" href="main.css">
 
     <!-- load some node.js packages -->
     <script>
+        var Promise = require("bluebird");
         remote = require('electron').remote;
         window.settings = require('electron-settings');
         settings.defaults(require("./defaults.json"));
@@ -29,6 +31,7 @@
 
         window.$ = window.jQuery = require("jquery");
         require('bootstrap');
+        require('bootstrap-notify');
         window.bootbox = require('bootbox');
         require("swiper");
         window.qrImage = require("qr-image");
@@ -280,6 +283,34 @@
             }
         }
 
+        var done = 0;
+        var downloadMessage = "Downloading PDF files ({done} of {total})";
+        var downloadProgress = $.notify({
+            message: format(downloadMessage, {
+                done: 0,
+                total: articles.length
+            }),
+            progress: 0
+        }, {
+            showProgressbar: true,
+            delay: 0
+        });
+
+        var updateProgress = () => {
+            ++done;
+            console.log(format(downloadMessage, {
+                "done": done,
+                "total": articles.length
+            }));
+            downloadProgress.update({
+                message: format(downloadMessage, {
+                    "done": done,
+                    "total": articles.length
+                }),
+                progress: (100 * done) / articles.length
+            });
+        }
+
         function initCache(which) {
             var article = articles[which];
             article.cachedPdf = path.join(pdfCacheDirname, `${article.sha256}.pdf`);
@@ -293,7 +324,7 @@
                 } else {
                     console.log("sha256 does not match for", article, "trying to download the file (again)");
                     return download(article.pdf, article.cachedPdf).then(() => {
-                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`)));
+                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`))).finally(updateProgress);
                     });
                 }
             });
@@ -404,7 +435,12 @@
                 });
                 promises.push(pagePromise);
             }
-            return Promise.all(promises);
+            var result = Promise.all(promises);
+            result.then(() => setTimeout(() => downloadProgress.close()));
+            result.then(function() {
+                $('#progressCache').html($('#progressCache').html() + '. done');
+            });
+            return result;
         }
 
         var initComplete = false;
