@@ -390,21 +390,36 @@
                         var scale = $(slide).width() / viewport.width;
                         var scaledViewport = page.getViewport(scale);
 
-                        const canvas = document.createElement("CANVAS");
-                        canvas.style.transform = 'translateZ(0)';
-                        canvas.width = scaledViewport.width;
-                        canvas.height = scaledViewport.height;
-                        div.appendChild(canvas);
-
-                        var context = canvas.getContext("2d", {
-                            alpha: false
-                        });
-                        var renderContext = {
-                            canvasContext: context,
-                            viewport: scaledViewport
+                        var renderPromise;
+                        var addNewElem = e => {
+                            e.style.backgroundColor = 'white';
+                            e.style.transform = 'translateZ(0)';
+                            div.appendChild(e);
                         };
+                        var useSVG = true;
+                        if (useSVG) {
+                            renderPromise = page.getOperatorList()
+                                .then(function(opList) {
+                                    var svgGfx = new PDFJS.SVGGraphics(page.commonObjs, page.objs);
+                                    return svgGfx.getSVG(opList, scaledViewport);
+                                })
+                                .then(addNewElem).then(updateRenderProgress);
+                        } else {
+                            const canvas = document.createElement("CANVAS");
+                            canvas.width = scaledViewport.width;
+                            canvas.height = scaledViewport.height;
 
-                        var renderPromise = page.render(renderContext).then(updateRenderProgress);
+                            var context = canvas.getContext("2d", {
+                                alpha: false
+                            });
+                            var renderContext = {
+                                canvasContext: context,
+                                viewport: scaledViewport
+                            };
+
+                            renderPromise = page.render(renderContext).then(() => addNewElem(canvas)).then(updateRenderProgress);
+                        }
+
                         renderPromises.push(renderPromise);
                     });
                     pagePromises.push(pagePromise);
