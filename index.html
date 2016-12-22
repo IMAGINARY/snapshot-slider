@@ -205,10 +205,21 @@
         var swiperInitialSlide;
         var nestedSwipers = [];
 
+        document.onkeydown = e => {
+            const actions = {
+                37: swiper.slidePrev, // left arrow
+                39: swiper.slideNext, // right arrow
+                40: nestedSwipers[swiper.realIndex].slideNext, // down arrow
+                38: nestedSwipers[swiper.realIndex].slidePrev // up arrow
+            }
+            if (typeof actions[e.keyCode] !== 'undefined')
+                actions[e.keyCode]();
+        };
+
         function rearrangeConfig() {
             if (miscConfig.snapshots.sort.enable) {
                 var sortConfig = miscConfig.snapshots.sort;
-                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null )
+                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null)
                     sortConfig.compareFunction = `(a,b) => a.${sortConfig.by}.localeCompare(b.${sortConfig.by})`;
                 articles = articles.sort(eval(sortConfig.compareFunction));
             }
