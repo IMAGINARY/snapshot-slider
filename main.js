@@ -162,7 +162,12 @@ function createWindow() {
         fullscreenable: true
     });
 
-    mainWindow.setAspectRatio(16 / 9);
+    // fix aspect ratio (macOS only)
+    const aspectRatio = 16.0 / 9.0;
+    if (!mainWindow.isFullScreen())
+        mainWindow.setAspectRatio(aspectRatio);
+    mainWindow.on('enter-full-screen', e => mainWindow.setAspectRatio(0.0))
+    mainWindow.on('leave-full-screen', e => mainWindow.setAspectRatio(aspectRatio))
 
     // disable menu bar
     mainWindow.setMenu(null);
