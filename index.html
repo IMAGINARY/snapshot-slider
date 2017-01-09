@@ -60,6 +60,15 @@
         var streamBuffers = require('stream-buffers');
         var printer = require('printer');
 
+        var pdfCacheDirname = path.join(path.dirname(settings.getSettingsFilePath()), "pdfCache");
+        var pngCacheDirname = path.join(path.dirname(settings.getSettingsFilePath()), "pngCache");
+        fsExtra.mkdirpSync(pdfCacheDirname, {
+            mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+        });
+        fsExtra.mkdirpSync(pngCacheDirname, {
+            mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+        });
+
         function download(url, dest) {
             return new Promise((resolve, reject) => {
                 console.log(`Downloading ${url} to ${dest}`);
@@ -151,11 +160,25 @@
 <body class="noselect">
 
     <div id="progress">
-        PDF documents cached: <span id="progressCache">0</span>
-        <br />PDF documents loaded: <span id="progressDocs">0</span>
-        <br /> PDF pages loaded: <span id="progressPages">0</span>
-        <br /> PDF pages rendered: <span id="progressRendered">0</span>
+        PDF documents cached: <span id="progressCache" num="0" total="0">0</span>
+        <br />PDF documents loaded: <span id="progressDocs" num="0" total="0">0</span>
+        <br /> PDF pages loaded: <span id="progressPages" num="0" total="0">0</span>
+        <br /> PDF pages rendered: <span id="progressRendered" num="0" total="0">0</span>
     </div>
+    <script>
+        {
+            var update = node => node.innerHTML = node.getAttribute('num') + " of " + node.getAttribute('total');
+            var mo = new MutationObserver(mutations =>
+                mutations.forEach(m => update(m.target)));
+            ["progressCache", "progressDocs", "progressPages", "progressRendered"].forEach(id => mo.observe(document.getElementById(id), {
+                attributes: true
+            }));
+        }
+
+        function increaseAttr(selector, attr, amount) {
+            $(selector).attr(attr, parseInt($(selector).attr(attr), 10) + amount);
+        }
+    </script>
 
     <!-- Swiper -->
     <div class="swiper-container swiper-container-h" id="slider">
@@ -182,10 +205,21 @@
         var swiperInitialSlide;
         var nestedSwipers = [];
 
+        document.onkeydown = e => {
+            const actions = {
+                37: swiper.slidePrev, // left arrow
+                39: swiper.slideNext, // right arrow
+                40: nestedSwipers[swiper.realIndex].slideNext, // down arrow
+                38: nestedSwipers[swiper.realIndex].slidePrev // up arrow
+            }
+            if (typeof actions[e.keyCode] !== 'undefined')
+                actions[e.keyCode]();
+        };
+
         function rearrangeConfig() {
             if (miscConfig.snapshots.sort.enable) {
                 var sortConfig = miscConfig.snapshots.sort;
-                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null )
+                if (typeof sortConfig.by !== "undefined" && sortConfig.by != null)
                     sortConfig.compareFunction = `(a,b) => a.${sortConfig.by}.localeCompare(b.${sortConfig.by})`;
                 articles = articles.sort(eval(sortConfig.compareFunction));
             }
@@ -216,51 +250,153 @@
             }
         }
 
-        function initCache() {
-            var promises = [];
-            var suffix = "pdfCache";
-            var dirname = path.join(path.dirname(settings.getSettingsFilePath()), suffix);
-            fsExtra.mkdirpSync(dirname, {
-                mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
-            });
-            for (var i = 0; i < articles.length; ++i) {
-                const c = articles[i];
-                promises.push(new Promise(
-                    function(resolve, reject) {
-                        const resolve_wrapper = () => {
-                            $('#progressCache').html(parseInt($('#progressCache').html(), 10) + 1 + ' of ' + articles.length);
-                            resolve();
-                        }
-                        var basename = path.basename(c.pdf, ".pdf");
-                        c.cachedPdf = path.join(dirname, `${basename}.pdf`);
-                        downloadPromise = fileExists(c.cachedPdf) ? Promise.resolve(c.cachedPdf) : download(c.pdf, c.cachedPdf);
-                        downloadPromise.catch(reject);
-                        downloadPromise.then(resolve_wrapper);
-                    }
-                ));
-            }
-            var result = Promise.all(promises);
-            result.then(function() {
-                $('#progressCache').html($('#progressCache').html() + '. done');
-            });
-            return result;
+        function initCache(which) {
+            var article = articles[which];
+            var basename = path.basename(article.pdf, ".pdf");
+            article.cachedPdf = path.join(pdfCacheDirname, `${basename}.pdf`);
+            return fileExists(article.cachedPdf) ? Promise.resolve(which) : download(article.pdf, article.cachedPdf).then(() => which);
         }
+
+        function initTopLevelSlides() {
+            for (var i = 0; i < articles.length; ++i) {
+                const slide = document.createElement("DIV");
+                slide.classList.add("swiper-slide");
+                slide.classList.add("swiper-slide-h");
+                $("#slider").children(".swiper-wrapper").first().append(slide);
+                const $slide_wrapper = $('<div/>', {
+                    class: 'slide-wrapper'
+                });
+                $(slide).append($slide_wrapper);
+
+                const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
+
+                const isFrontPage = typeof articles[i].isFrontPage != 'undefined' && articles[i].isFrontPage == true;
+
+                $slide_wrapper.append(verticalSwiper);
+                const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
+                buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
+                if (isFrontPage)
+                    buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
+                else
+                    buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
+
+                // add QR code
+                var svgObject = $(qrImage.imageSync(articles[i].url_short, {
+                    type: 'svg',
+                    size: 2
+                }));
+                svgObject.addClass("qrcode");
+                $(`#button-bar-${i}`).append(svgObject);
+                if (isFrontPage)
+                    $(`#button-bar-${i}`).addClass('overview');
+            }
+        }
+
+        function initNestedSlides(which) {
+            var nestedSwiper = nestedSwipers[which];
+            var promises = [];
+            for (var pageNum = 1; pageNum <= documents[which].numPages; ++pageNum) {
+                const loader = document.createElement("div");
+                loader.classList.add("loader");
+                const div = document.createElement("div");
+                div.appendChild(loader);
+                div.classList.add("swiper-slide");
+                div.classList.add("swiper-slide-v");
+                div.style.height = `${nestedSwiper.width}px`;
+
+                nestedSwiper.appendSlide(div);
+
+                const thisPageNum = pageNum;
+                articles[which].cachedPng = new Array(documents[which].numPages);
+                var pdfBasename = path.basename(articles[which].pdf, ".pdf");
+                var pagePromise = documents[which].getPage(thisPageNum).then(page => {
+                    increaseAttr("#progressPages", "num", 1);
+
+                    var viewport = page.getViewport(1);
+                    var scale = nestedSwiper.width / viewport.width;
+                    var scaledViewport = page.getViewport(scale);
+                    scaledViewport.width = Math.floor(scaledViewport.width);
+                    scaledViewport.height = Math.floor(scaledViewport.height);
+
+                    // fix dimensions of slide
+                    div.style.width = `${scaledViewport.width}px`;
+                    div.style.height = `${scaledViewport.height}px`;
+                    nestedSwiper.update(true);
+
+                    // determine filename of PNG image cache
+                    var cachedPng = path.join(pngCacheDirname, `${pdfBasename}.${thisPageNum}.${scaledViewport.width}x${scaledViewport.height}.png`);
+                    articles[which].cachedPng[thisPageNum - 1] = cachedPng;
+
+                    // create PNG cache image if it's not already there
+                    var cachePromise;
+                    if (fileExists(cachedPng))
+                        cachePromise = Promise.resolve();
+                    else {
+                        const canvas = document.createElement("CANVAS");
+                        canvas.style.transform = 'translateZ(0)';
+                        canvas.width = scaledViewport.width;
+                        canvas.height = scaledViewport.height;
+
+                        var context = canvas.getContext("2d", {
+                            alpha: false
+                        });
+                        var renderContext = {
+                            canvasContext: context,
+                            viewport: scaledViewport
+                        };
+
+                        cachePromise = page.render(renderContext).then(() => {
+                            var pngDataBase64 = canvas.toDataURL().substr("data:image/png;base64,".length);
+                            var pngBuffer = Buffer.from(pngDataBase64, "base64");
+                            return new Promise((resolve, reject) => {
+                                fs.writeFile(cachedPng, pngBuffer, err => err ? reject(err) : resolve());
+                            });
+                        });
+                    }
+                    return cachePromise.then(() => increaseAttr("#progressRendered", "num", 1));
+                });
+                promises.push(pagePromise);
+            }
+            return Promise.all(promises);
+        }
+
+        var initComplete = false;
 
         function initSliders() {
             var lastActiveIndex = -1;
             var triggerAgain;
             var callback = function() {
-                if (lastActiveIndex != swiper.activeIndex) {
+                if (lastActiveIndex != swiper.activeIndex && initComplete) {
                     console.log("reassigning slides");
-                    $('slide-wrapper').css({
-                        outline: 'none'
-                    });
+                    $(swiper.slides).css("visibility", "hidden");
+                    var imagesToRemove = $(swiper.slides).find("img");
+                    var imagesAdded = 0;
                     for (var i = swiper.activeIndex - 3; i <= swiper.activeIndex + 3; i++) {
                         const slide = swiper.slides[i % swiper.slides.length];
-                        const nestedSwiper = nestedSwipers[slide.getAttribute("data-swiper-slide-index")].container[0];
+                        slide.style.visibility = "visible";
+                        const tlSlideIndex = slide.getAttribute("data-swiper-slide-index");
+                        const nestedSwiper = nestedSwipers[tlSlideIndex].container[0];
+
+                        nestedSwipers[tlSlideIndex].slides.each((j, nestedSlide) => {
+                            var image = $(nestedSlide).find("img");
+                            if (image.length == 0) {
+                                ++imagesAdded;
+                                image = new Image();
+                                image.onload = () => {
+                                    while (nestedSlide.firstChild)
+                                        nestedSlide.removeChild(nestedSlide.firstChild);
+                                    nestedSlide.appendChild(image);
+                                };
+                                image.src = articles[tlSlideIndex].cachedPng[j];
+                            }
+                            imagesToRemove = imagesToRemove.not(image);
+                        });
+
                         slide.getElementsByClassName("slide-wrapper")[0].appendChild(nestedSwiper);
                         console.log(slide.getAttribute("data-swiper-slide-index") + " -> " + i % swiper.slides.length);
                     }
+                    imagesToRemove.remove();
+                    console.log(`${imagesAdded} images added, ${imagesToRemove.length} removed`);
                     lastActiveIndex = swiper.activeIndex;
                 }
                 if (triggerAgain)
@@ -312,112 +448,11 @@
         var documents = new Array(articles.length);
         var totalNumPages = 0;
 
-        function initDocuments() {
-            var promises = [];
-            for (var i = 0; i < articles.length; ++i) {
-                const local_i = i;
-                var promise = PDFJS.getDocument(articles[local_i].cachedPdf).promise;
-                promise.then(function(pdf) {
-                    documents[local_i] = pdf;
-                    totalNumPages += pdf.numPages;
-                    $('#progressDocs').html(parseInt($('#progressDocs').html(), 10) + 1 + ' of ' + articles.length);
-                });
-                promises.push(promise);
-            }
-            var result = Promise.all(promises);
-            result.then(function() {
-                $('#progressDocs').html($('#progressDocs').html() + '. done');
-            });
-            return result;
-        }
-
-        function initSlides() {
-
-            var pagePromises = [];
-            var renderPromises = [];
-
-            for (var i = 0; i < articles.length; ++i) {
-                const slide = document.createElement("DIV");
-                slide.classList.add("swiper-slide");
-                slide.classList.add("swiper-slide-h");
-                $("#slider").children(".swiper-wrapper").first().append(slide);
-                const $slide_wrapper = $('<div/>', {
-                    class: 'slide-wrapper'
-                });
-                $(slide).append($slide_wrapper);
-
-                const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
-                const verticalSwiperWrapper = verticalSwiper.children(".swiper-wrapper").first();
-
-                const isFrontPage = typeof articles[i].isFrontPage != 'undefined' && articles[i].isFrontPage == true;
-
-                $slide_wrapper.append(verticalSwiper);
-                const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
-                buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
-                if (isFrontPage)
-                    buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
-                else
-                    buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
-
-                // add QR code
-                var svgObject = $(qrImage.imageSync(articles[i].url_short, {
-                    type: 'svg',
-                    size: 2
-                }));
-                svgObject.addClass("qrcode");
-                $(`#button-bar-${i}`).append(svgObject);
-                if (isFrontPage)
-                    $(`#button-bar-${i}`).addClass('overview');
-
-                const pdf = documents[i];
-
-                for (var pageNum = 1; pageNum <= pdf.numPages; ++pageNum) {
-                    const div = document.createElement("div");
-                    div.classList.add("swiper-slide");
-                    div.classList.add("swiper-slide-v");
-
-                    const thisPageNum = pageNum;
-
-                    verticalSwiperWrapper.append(div);
-
-                    var pagePromise = pdf.getPage(pageNum).then(function(page) {
-                        $('#progressPages').html(parseInt($('#progressPages').html(), 10) + 1 + ' of ' + totalNumPages);
-                        var updateRenderProgress = function() {
-                            $('#progressRendered').html(parseInt($('#progressRendered').html(), 10) + 1 + ' of ' + totalNumPages);
-                        };
-
-                        var viewport = page.getViewport(1);
-                        var scale = $(slide).width() / viewport.width;
-                        var scaledViewport = page.getViewport(scale);
-
-                        const canvas = document.createElement("CANVAS");
-                        canvas.style.transform = 'translateZ(0)';
-                        canvas.width = scaledViewport.width;
-                        canvas.height = scaledViewport.height;
-                        div.appendChild(canvas);
-
-                        var context = canvas.getContext("2d", {
-                            alpha: false
-                        });
-                        var renderContext = {
-                            canvasContext: context,
-                            viewport: scaledViewport
-                        };
-
-                        var renderPromise = page.render(renderContext).then(updateRenderProgress);
-                        renderPromises.push(renderPromise);
-                    });
-                    pagePromises.push(pagePromise);
-                }
-            }
-
-            return new Promise(function(resolve, reject) {
-                Promise.all(pagePromises).then(function() {
-                    $('#progressPages').html($('#progressPages').html() + '. done');
-                    Promise.all(renderPromises).then(function() {
-                        $('#progressRendered').html($('#progressRendered').html() + '. done');
-                    }).then(resolve, reject);
-                }, reject);
+        function initDocument(which) {
+            return PDFJS.getDocument(articles[which].cachedPdf).promise.then(function(pdf) {
+                documents[which] = pdf;
+                totalNumPages += pdf.numPages;
+                return which;
             });
         }
 
@@ -566,16 +601,35 @@
         }
 
         $(document).ready(function() {
+            var startTime = performance.now()
             rearrangeConfig();
-            initCache().then(function() {
-                initDocuments().then(function() {
-                    initSlides().then(function() {
-                        $('#progress').hide();
-                        initSliders();
-                        initIdleHandlers();
-                        switchToSlider();
-                    });
-                });
+            $("#progressCache").attr("total", articles.length);
+            $("#progressDocs").attr("total", articles.length);
+            initTopLevelSlides();
+            initSliders();
+            promises = [];
+            for (which = 0; which < articles.length; ++which) {
+                promise = initCache(which)
+                    .then(which => {
+                        increaseAttr("#progressCache", "num", 1);
+                        return which;
+                    })
+                    .then(initDocument)
+                    .then(which => {
+                        increaseAttr("#progressDocs", "num", 1);
+                        $("#progressPages").attr("total", totalNumPages);
+                        $("#progressRendered").attr("total", totalNumPages);
+                        return which;
+                    })
+                    .then(initNestedSlides);
+                promises.push(promise);
+            }
+            Promise.all(promises).then(() => {
+                initComplete = true;
+                $('#progress').hide();
+                initIdleHandlers();
+                switchToSlider();
+                console.log(`loading took ${(performance.now()-startTime)/1000.0}s`)
             });
         });
     </script>
