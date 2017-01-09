@@ -5,6 +5,8 @@ const electron = require('electron');
 const app = electron.app;
 app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
 
+const settings = require('electron-settings');
+
 function sw() {
 
 
@@ -155,8 +157,9 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1920 / 2,
         height: 1080 / 2,
-        kiosk: false,
-        fullscreen: true
+        kiosk: settings.getSync("kiosk"),
+        fullscreen: settings.getSync("fullscreen"),
+        fullscreenable: true
     });
 
     mainWindow.setAspectRatio(16 / 9);
@@ -168,7 +171,8 @@ function createWindow() {
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools.
-    //mainWindow.webContents.openDevTools();
+    if (settings.getSync("devTools"))
+        mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {

@@ -1,4 +1,8 @@
 {
+    "fullscreen": false,
+    "kiosk": false,
+    "devTools": false,
+    "hideCursor": false,
     "idleModeDelayMs": 180000,
     "idleModeDelayBetweenActionsMs": 8000,
     "idleAnimationDurationMs": 1000,

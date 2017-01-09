@@ -73,9 +73,6 @@ body {
     overflow: hidden;
 }
 
-* {
-    cursor: none;
-}
 .noselect {
     -webkit-touch-callout: none;
     /* iOS Safari */
@@ -139,6 +136,10 @@ body {
 }
 .button-bar > a:link {
     color: black;
+}
+
+.button-bar > .disabled {
+    color: #bbb;
 }
 
 .button-bar.overview {

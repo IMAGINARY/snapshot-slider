@@ -206,6 +206,11 @@
         var swiperInitialSlide;
         var nestedSwipers = [];
 
+        if (miscConfig.hideCursor) {
+            var lastCSS = document.styleSheets[document.styleSheets.length - 1];
+            lastCSS.insertRule("* { cursor: none; }", lastCSS.cssRules.length);
+        }
+
         window.onresize = e => {
             var sx = $(window).width() / 1920;
             var sy = $(window).height() / 1080;
@@ -295,8 +300,13 @@
 
                 $slide_wrapper.append(verticalSwiper);
                 const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
-                buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
-                if (isFrontPage)
+
+                if (!miscConfig.mail.enable)
+                    buttonBar.append(`<i class="fa fa-envelope-o disabled" aria-hidden="true"></i>`);
+                else
+                    buttonBar.append(`<a href="javascript:switchToMailMode(${i});"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
+
+                if (isFrontPage || !miscConfig.print.enable)
                     buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
                 else
                     buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
