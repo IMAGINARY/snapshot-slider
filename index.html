@@ -13,6 +13,7 @@
 
     <!-- load some node.js packages -->
     <script>
+        remote = require('electron').remote;
         window.settings = require('electron-settings');
         settings.defaults(require("./defaults.json"));
         settings.applyDefaults({
@@ -204,6 +205,26 @@
         var swiper;
         var swiperInitialSlide;
         var nestedSwipers = [];
+
+        window.onresize = e => {
+            var sx = $(window).width() / 1920;
+            var sy = $(window).height() / 1080;
+            var s = Math.min(sx, sy);
+            var sc_h = document.getElementsByClassName("swiper-container-h")[0];
+            sc_h.style.transform = `scale(${s})`;
+            sc_h.style.left = `${($(window).width()-1920*s)/2.0}px`;
+            sc_h.style.top = `${($(window).height()-1080*s)/2.0}px`;
+        }
+        window.onresize();
+
+        document.body.ondblclick = e => {
+            var win = remote.getCurrentWindow();
+            var sx = win.getContentSize()[0] / 1920;
+            var sy = win.getContentSize()[0] / 1080;
+            var s = Math.min(sx, sy);
+            win.setContentSize(Math.floor(1920 * s), Math.floor(1080 * s), true);
+        }
+        document.body.ondblclick();
 
         document.onkeydown = e => {
             const actions = {

@@ -60,7 +60,7 @@ html {
     height: 100%;
 }
 body {
-    background: #777;
+    background: #111;
     font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
     font-size: 14px;
     margin: 0;
@@ -96,12 +96,7 @@ body {
     position: absolute;
     width: 1920px;
     height: 1080px;
-    /*
-    margin: 0px auto;
-    padding: 50px;
-    transform: scale( 0.875, 0.875 );
-    transform: scale( 0.6, 0.6 );
-*/
+    margin: auto;
     transform-origin: top left;
 }
 

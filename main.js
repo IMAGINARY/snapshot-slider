@@ -153,11 +153,13 @@ let mainWindow;
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        kiosk: true,
+        width: 1920 / 2,
+        height: 1080 / 2,
+        kiosk: false,
         fullscreen: true
     });
+
+    mainWindow.setAspectRatio(16 / 9);
 
     // disable menu bar
     mainWindow.setMenu(null);
