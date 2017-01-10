@@ -3,7 +3,7 @@
 const electron = require('electron');
 // Module to control application life.
 const app = electron.app;
-app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
+//app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
 
 const settings = require('electron-settings');
 

@@ -55,6 +55,10 @@
         window.fs = require('fs');
         window.fsExtra = require('fs-extra');
         window.path = require('path');
+        window.hashFiles = function(options) {
+            return new Promise((resolve, reject) => hashFiles._hashFilesNodeBack(options, (err, hash) => err ? reject(err) : resolve(hash)));
+        };
+        window.hashFiles._hashFilesNodeBack = require('hash-files');
         window.childProcess = require('child_process');
         var request = require('request');
         var hummus = require('hummus');
@@ -278,9 +282,21 @@
 
         function initCache(which) {
             var article = articles[which];
-            var basename = path.basename(article.pdf, ".pdf");
-            article.cachedPdf = path.join(pdfCacheDirname, `${basename}.pdf`);
-            return fileExists(article.cachedPdf) ? Promise.resolve(which) : download(article.pdf, article.cachedPdf).then(() => which);
+            article.cachedPdf = path.join(pdfCacheDirname, `${article.sha256}.pdf`);
+            var hashOptions = {
+                files: [article.cachedPdf],
+                algorithm: 'sha256'
+            };
+            return hashFiles(hashOptions).then(sha256 => {
+                if (sha256 == article.sha256) {
+                    return Promise.resolve(which);
+                } else {
+                    console.log("sha256 does not match for", article, "trying to download the file (again)");
+                    return download(article.pdf, article.cachedPdf).then(() => {
+                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`)));
+                    });
+                }
+            });
         }
 
         function initTopLevelSlides() {
@@ -487,6 +503,12 @@
             });
         }
 
+        function disableSnapshot(index) {
+            // disable mail and print buttons
+            $(`#button-bar-${index} a > i`).unwrap();
+            $(`#button-bar-${index} i`).addClass("disabled");
+        }
+
         function initIdleHandlers() {
             var idle_timer = null;
             var init_idle_timer = function(delay) {
@@ -639,7 +661,7 @@
             initTopLevelSlides();
             initSliders();
             promises = [];
-            for (which = 0; which < articles.length; ++which) {
+            articles.forEach((e, which, a) => {
                 promise = initCache(which)
                     .then(which => {
                         increaseAttr("#progressCache", "num", 1);
@@ -652,9 +674,13 @@
                         $("#progressRendered").attr("total", totalNumPages);
                         return which;
                     })
-                    .then(initNestedSlides);
+                    .then(initNestedSlides)
+                    .catch(e => {
+                        disableSnapshot(which);
+                        console.log("Problem processing snapshot", articles[which], e);
+                    });
                 promises.push(promise);
-            }
+            });
             Promise.all(promises).then(() => {
                 initComplete = true;
                 $('#progress').hide();
