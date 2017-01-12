@@ -207,6 +207,7 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
     border-radius: 4px;
     background-color: white;
     color: gray;
+    overflow: scroll;
 }
 
 #progress {

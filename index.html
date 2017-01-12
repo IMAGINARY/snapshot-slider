@@ -265,7 +265,7 @@
                 if (details instanceof Error)
                     details = details.stack;
                 else if (details instanceof Object)
-                    details = JSON.stringify(details);
+                    details = JSON.stringify(details, null, 2);
 
                 detailsHTML =
                     `
