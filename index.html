@@ -288,6 +288,7 @@
             });
         }
 
+        var notifySuccess = (title, message, details) => _notify("fa fa-check-square", title, message, details, "success");
         var notifyInfo = (title, message, details) => _notify("fa fa-info-circle", title, message, details, "info");
         var notifyWarning = (title, message, details) => _notify("fa fa-exclamation-triangle", title, message, details, "warning");
         var notifyError = (title, message, details) => _notify("fa fa-exclamation-circle", title, message, details, "danger");
