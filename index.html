@@ -6,6 +6,7 @@
     <title>SNAPSHOT slider</title>
     <!-- Link Swiper's CSS -->
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="node_modules/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css">
     <link rel="stylesheet" href="libs/jqbtk.min.css">
     <link rel="stylesheet" href="node_modules/swiper/dist/css/swiper.min.css">
     <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
@@ -167,46 +168,130 @@
 
 <body class="noselect">
 
-    <div id="progress">
-        PDF documents cached: <span id="progressCache" num="0" total="0">0</span>
-        <br />PDF documents loaded: <span id="progressDocs" num="0" total="0">0</span>
-        <br /> PDF pages loaded: <span id="progressPages" num="0" total="0">0</span>
-        <br /> PDF pages rendered: <span id="progressRendered" num="0" total="0">0</span>
+    <div id="full-hd-centered">
+        <!-- Swiper -->
+        <div class="swiper-container swiper-container-h" id="slider">
+            <div class="swiper-wrapper">
+            </div>
+        </div>
     </div>
+
+    <template id="progressTemplate">
+        <div class="progress">
+            <span class="progressbar-back-text"></span>
+            <div id="progressCache" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%;" template="{0} of {1} documents cached">
+                <span class="progressbar-front-text"></span>
+            </div>
+        </div>
+        <div class="progress">
+            <span class="progressbar-back-text"></span>
+            <div id="progressDocs" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} documents initialized">
+                <span class="progressbar-front-text"></span>
+            </div>
+        </div>
+        <div class="progress">
+            <span class="progressbar-back-text"></span>
+            <div id="progressPages" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} pages loaded">
+                <span class="progressbar-front-text"></span>
+            </div>
+        </div>
+        <div class="progress">
+            <span class="progressbar-back-text"></span>
+            <div id="progressRendered" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} pages cached">
+                <span class="progressbar-front-text"></span>
+            </div>
+        </div>
+    </template>
     <script>
-        {
-            var update = node => node.innerHTML = node.getAttribute('num') + " of " + node.getAttribute('total');
-            var mo = new MutationObserver(mutations =>
-                mutations.forEach(m => update(m.target)));
-            ["progressCache", "progressDocs", "progressPages", "progressRendered"].forEach(id => mo.observe(document.getElementById(id), {
-                attributes: true
-            }));
+        var initNotification;
+        var initNotificationReady = new Promise((resolve, reject) => {
+                initNotification = $.notify({
+                    icon: "fa fa-circle-o-notch fa-spin fa-fw",
+                    title: "Initializing the slider …",
+                    message: '<div id="progress"></div>'
+                }, {
+                    delay: 0,
+                    onShow: resolve,
+                    allow_dismiss: false
+                })
+            })
+            .then(() => $("#progress").append($("#progressTemplate")[0].content.children))
+            .then(() => ["#progressCache", "#progressDocs", "#progressPages", "#progressRendered"].forEach(e => updateProgressBar(e)));
+
+        function updateProgressBar(progressBar, data) {
+            $progressBar = $(progressBar);
+
+            if (typeof data === "object" || typeof data === "function") {
+                ["min", "max", "now"].forEach((e, i, a) => {
+                    if (data.hasOwnProperty(e)) {
+                        if (data.offset === true)
+                            increaseAttr($progressBar, `aria-value${e}`, data[e]);
+                        else
+                            $progressBar.attr(`aria-value${e}`, data[e]);
+                    }
+                });
+            }
+
+            var min = $progressBar.attr("aria-valuemin");
+            var max = $progressBar.attr("aria-valuemax");
+            var now = $progressBar.attr("aria-valuenow");
+            var percentage = 100 * (now - min) / (max - min);
+            $progressBar.css("width", `${percentage}%`);
+
+            $frontText = $progressBar.find(".progressbar-front-text");
+            $frontText.css("width", $progressBar.parent().css("width"));
+            $frontText.text(format($progressBar.attr("template"), now, max));
+            $backText = $progressBar.parent().find(".progressbar-back-text");
+            $backText.text(format($progressBar.attr("template"), now, max));
         }
 
         function increaseAttr(selector, attr, amount) {
             $(selector).attr(attr, parseInt($(selector).attr(attr), 10) + amount);
         }
+
+        function _notify(icon, title, message, details, type) {
+            this.id = typeof this.id === "undefined" ? this.id = 0 : this.id + 1;
+
+            console.log({
+                id: this.id,
+                type: type,
+                title: title,
+                message: message,
+                details: details
+            });
+
+            var detailsHTML = ""
+            if (!(typeof details === "undefined")) {
+                if (details instanceof Error)
+                    details = details.stack;
+                else if (details instanceof Object)
+                    details = JSON.stringify(details);
+
+                detailsHTML =
+                    `
+                    <i class="fa fa-caret-down" aria-hidden="true" onClick="$('#collapsibleDetails${this.id}').collapse('show');$(this).css('display','none');$(this).next().css('display','');"></i>
+                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="$('#collapsibleDetails${this.id}').collapse('hide');$(this).css('display','none');$(this).prev().css('display','');"></i>
+                    <div id="collapsibleDetails${this.id}" class="collapse">
+                        <pre class="notifyDetails">${details}</pre>
+                    </div>
+                `;
+            }
+
+            var notification = $.notify({
+                icon: icon,
+                title: title,
+                message: typeof message === 'undefined' ? "" : message + detailsHTML
+            }, {
+                type: type,
+                delay: 4000,
+                mouse_over: 'pause'
+            });
+        }
+
+        var notifyInfo = (title, message, details) => _notify("fa fa-info-circle", title, message, details, "info");
+        var notifyWarning = (title, message, details) => _notify("fa fa-exclamation-triangle", title, message, details, "warning");
+        var notifyError = (title, message, details) => _notify("fa fa-exclamation-circle", title, message, details, "danger");
     </script>
-
-    <!-- Swiper -->
-    <div class="swiper-container swiper-container-h" id="slider">
-        <div class="swiper-wrapper">
-        </div>
-    </div>
-
-    <div id="sendEmail">
-        Send E-Mail
-        <a href="javascript:switchToSlider()">Hide</a>
-        <a id="mailButton" href="">Mail</a>
-        <p>
-            Name:
-            <input id="recipientName" width="100" />
-        </p>
-        <p>
-            Address:
-            <input id="recipientAddress" width="100" />
-        </p>
-    </div>
 
     <script>
         var swiper;
@@ -222,10 +307,10 @@
             var sx = $(window).width() / 1920;
             var sy = $(window).height() / 1080;
             var s = Math.min(sx, sy);
-            var sc_h = document.getElementsByClassName("swiper-container-h")[0];
-            sc_h.style.transform = `scale(${s})`;
-            sc_h.style.left = `${($(window).width()-1920*s)/2.0}px`;
-            sc_h.style.top = `${($(window).height()-1080*s)/2.0}px`;
+            var fullHdCentered = document.getElementById("full-hd-centered");
+            fullHdCentered.style.transform = `scale(${s})`;
+            fullHdCentered.style.left = `${($(window).width()-1920*s)/2.0}px`;
+            fullHdCentered.style.top = `${($(window).height()-1080*s)/2.0}px`;
         }
         window.onresize();
 
@@ -283,34 +368,6 @@
             }
         }
 
-        var done = 0;
-        var downloadMessage = "Downloading PDF files ({done} of {total})";
-        var downloadProgress = $.notify({
-            message: format(downloadMessage, {
-                done: 0,
-                total: articles.length
-            }),
-            progress: 0
-        }, {
-            showProgressbar: true,
-            delay: 0
-        });
-
-        var updateProgress = () => {
-            ++done;
-            console.log(format(downloadMessage, {
-                "done": done,
-                "total": articles.length
-            }));
-            downloadProgress.update({
-                message: format(downloadMessage, {
-                    "done": done,
-                    "total": articles.length
-                }),
-                progress: (100 * done) / articles.length
-            });
-        }
-
         function initCache(which) {
             var article = articles[which];
             article.cachedPdf = path.join(pdfCacheDirname, `${article.sha256}.pdf`);
@@ -324,7 +381,7 @@
                 } else {
                     console.log("sha256 does not match for", article, "trying to download the file (again)");
                     return download(article.pdf, article.cachedPdf).then(() => {
-                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`))).finally(updateProgress);
+                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`)));
                     });
                 }
             });
@@ -388,7 +445,10 @@
                 articles[which].cachedPng = new Array(documents[which].numPages);
                 var pdfBasename = path.basename(articles[which].pdf, ".pdf");
                 var pagePromise = documents[which].getPage(thisPageNum).then(page => {
-                    increaseAttr("#progressPages", "num", 1);
+                    updateProgressBar("#progressPages", {
+                        now: 1,
+                        offset: true
+                    });
 
                     var viewport = page.getViewport(1);
                     var scale = nestedSwiper.width / viewport.width;
@@ -431,16 +491,14 @@
                             });
                         });
                     }
-                    return cachePromise.then(() => increaseAttr("#progressRendered", "num", 1));
+                    return cachePromise.then(() => updateProgressBar("#progressRendered", {
+                        now: 1,
+                        offset: true
+                    }));
                 });
                 promises.push(pagePromise);
             }
-            var result = Promise.all(promises);
-            result.then(() => setTimeout(() => downloadProgress.close()));
-            result.then(function() {
-                $('#progressCache').html($('#progressCache').html() + '. done');
-            });
-            return result;
+            return Promise.all(promises);
         }
 
         var initComplete = false;
@@ -581,12 +639,7 @@
         }
 
         function switchToSlider() {
-            $('body > div').hide().filter('#slider').show();
-        }
-
-        function switchToViewer(which) {
-            console.log(config);
-            $('body > div').hide().filter('#showPdf').show();
+            $('#slider').show();
         }
 
         var recipientName = '';
@@ -689,41 +742,76 @@
             });
         }
 
-        $(document).ready(function() {
+        var documentReady = Promise.promisify($(document).ready)
+        Promise.join(documentReady, initNotificationReady).then(() => {
             var startTime = performance.now()
             rearrangeConfig();
-            $("#progressCache").attr("total", articles.length);
-            $("#progressDocs").attr("total", articles.length);
+            updateProgressBar("#progressCache", {
+                max: articles.length
+            });
+            updateProgressBar("#progressDocs", {
+                max: articles.length
+            });
             initTopLevelSlides();
             initSliders();
-            promises = [];
-            articles.forEach((e, which, a) => {
-                promise = initCache(which)
-                    .then(which => {
-                        increaseAttr("#progressCache", "num", 1);
-                        return which;
-                    })
-                    .then(initDocument)
-                    .then(which => {
-                        increaseAttr("#progressDocs", "num", 1);
-                        $("#progressPages").attr("total", totalNumPages);
-                        $("#progressRendered").attr("total", totalNumPages);
-                        return which;
-                    })
-                    .then(initNestedSlides)
-                    .catch(e => {
-                        disableSnapshot(which);
-                        console.log("Problem processing snapshot", articles[which], e);
+            var cachePDFPromises = [];
+            var initDocumentPromises = [];
+            var initNestedSlidesPromises = [];
+            var initCompletePromises = [];
+            articles.forEach((article, which, a) => {
+                var cachePromise = initCache(which).catch(e => {
+                    notifyError("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                    throw e;
+                });
+                var initDocumentPromise = cachePromise.then(() => initDocument(which).catch(e => {
+                    notifyError("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                    throw e;
+                }));
+                var initNestedSlidesPromise = initDocumentPromise.then(() => initNestedSlides(which).catchThrow(e => {
+                    notifyError("Initialization error",
+                        `Failed to render pages of "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                    throw e;
+                }));
+
+                cachePromise.finally(() => updateProgressBar("#progressCache", {
+                    now: 1,
+                    offset: true
+                }));
+                initNestedSlidesPromise.finally(() => {
+                    updateProgressBar("#progressDocs", {
+                        now: 1,
+                        offset: true
                     });
-                promises.push(promise);
+                    updateProgressBar("#progressPages", {
+                        max: totalNumPages
+                    });
+                    updateProgressBar("#progressRendered", {
+                        max: totalNumPages
+                    });
+                });
+
+                var initCompletePromise = initNestedSlidesPromise.catch(e => {
+                    disableSnapshot(which);
+                    console.log("Problem processing snapshot", article, e);
+                });
+
+                cachePDFPromises.push(cachePromise);
+                initDocumentPromises.push(initDocumentPromise);
+                initNestedSlidesPromises.push(initNestedSlidesPromise);
+                initCompletePromises.push(initCompletePromise);
             });
-            Promise.all(promises).then(() => {
-                initComplete = true;
-                $('#progress').hide();
-                initIdleHandlers();
-                switchToSlider();
-                console.log(`loading took ${(performance.now()-startTime)/1000.0}s`)
-            });
+
+            Promise.all(initNestedSlidesPromises).catch(() => notifyWarning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
+            Promise.all(initCompletePromises)
+                .delay(1000)
+                .then(() => initNotification.close())
+                .then(() => {
+                    initComplete = true;
+                    //$('#progress').hide();
+                    initIdleHandlers();
+                    switchToSlider();
+                    console.log(`loading took ${(performance.now()-startTime)/1000.0}s`)
+                });
         });
     </script>
 </body>

@@ -88,13 +88,20 @@ body {
     /* non-prefixed version, currently
                                   not supported by any browser */
 }
-.swiper-container-h {
-    background: black;
+
+#full-hd-centered {
     position: absolute;
     width: 1920px;
     height: 1080px;
     margin: auto;
     transform-origin: top left;
+}
+
+.swiper-container-h {
+    background: black;
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
 }
 
 .swiper-container-v {
@@ -184,8 +191,35 @@ body {
     height: 56px;
 }
 
+div[data-notify="container"] span[data-notify="title"] {
+    font-weight: bold;
+}
+
+div[data-notify="container"] span[data-notify="message"]:not(:empty) {
+    margin-top: 10px;
+    display: block;
+}
+
+.notifyDetails {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 5px;
+    border-radius: 4px;
+    background-color: white;
+    color: gray;
+}
+
 #progress {
-    font-size: xx-large;
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+.progress {
+    margin-bottom: 0px;
+}
+
+.progress + .progress {
+    margin-top: 5px;
 }
 
 .dialog em b {
