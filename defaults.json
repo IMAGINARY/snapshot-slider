@@ -1,5 +1,5 @@
 {
-    "fullscreen": false,
+    "fullscreen": true,
     "kiosk": false,
     "devTools": false,
     "hideCursor": false,
