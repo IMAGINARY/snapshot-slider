@@ -633,6 +633,9 @@
             document.body.addEventListener("touchcancel", non_idle_handler, true);
             document.body.addEventListener("touchmove", non_idle_handler, true);
             document.body.addEventListener("onscroll", non_idle_handler, true);
+            document.body.addEventListener("keydown", non_idle_handler, true);
+            document.body.addEventListener("keyup", non_idle_handler, true);
+            document.body.addEventListener("keypress", non_idle_handler, true);
 
             init_idle_timer(miscConfig.idleModeDelayMs);
         }
