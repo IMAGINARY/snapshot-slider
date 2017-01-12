@@ -19,7 +19,7 @@
         remote = require('electron').remote;
         window.settings = require('electron-settings');
         settings.defaults(require("./defaults.json"));
-        settings.applyDefaults({
+        settings.applyDefaultsSync({
             prettify: true
         });
         var miscConfig = settings.getSync("");
