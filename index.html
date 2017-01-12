@@ -692,31 +692,33 @@
 
         function print(which) {
             return new Promise((resolve, reject) => {
-                console.log('printing ' + path.basename(articles[which].cachedPdf));
-                streamBuffer = new streamBuffers.WritableStreamBuffer({
-                    initialSize: (1000 * 1024), // start at 100 kilobytes.
-                    incrementAmount: (100 * 1024) // grow by 10 kilobytes each time buffer overflows.
-                });
-                createPDFBooklet(articles[which].cachedPdf, streamBuffer);
-                printer.printDirect({
-                    data: streamBuffer.getContents(),
-                    type: 'PDF',
-                    options: {
-                        landscape: true,
-                        PageSize: 'A4',
-                        Duplex: 'DuplexTumble'
-                    },
-                    success: resolve,
-                    error: reject
-                });
-            });
+                    console.log('printing ' + path.basename(articles[which].cachedPdf));
+                    streamBuffer = new streamBuffers.WritableStreamBuffer({
+                        initialSize: (1000 * 1024), // start at 100 kilobytes.
+                        incrementAmount: (100 * 1024) // grow by 10 kilobytes each time buffer overflows.
+                    });
+                    createPDFBooklet(articles[which].cachedPdf, streamBuffer);
+                    printer.printDirect({
+                        data: streamBuffer.getContents(),
+                        docname: path.basename(articles[which].cachedPdf),
+                        type: 'PDF',
+                        options: {
+                            landscape: true,
+                            PageSize: 'A4',
+                            Duplex: 'DuplexTumble'
+                        },
+                        success: resolve,
+                        error: reject
+                    });
+                })
+                .then(() => notifySuccess('File has been sent to the printer'))
+                .catch(error => notifyError('Print job failed', 'Please check the error message', error));
         }
 
         function email(which) {
             var c = articles[which];
 
             console.log('mailing ' + c.url + ' to ' + recipientAddress);
-            console.log(mailConfig.smtp);
 
             const substUrls = function(s) {
                 return format(s, {
@@ -749,10 +751,9 @@
             // send mail with defined transport object
             transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
-                    bootbox.alert('Email could not be sent');
-                    console.log(error);
+                    notifyError('Email could not be sent', 'Please check the error message', error);
                 } else {
-                    bootbox.alert('Email sent successfully');
+                    notifySuccess('Email sent successfully', "", info);
                 }
             });
         }
