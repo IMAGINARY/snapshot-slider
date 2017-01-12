@@ -316,23 +316,27 @@
         window.onresize();
 
         document.body.ondblclick = e => {
-            var win = remote.getCurrentWindow();
-            var sx = win.getContentSize()[0] / 1920;
-            var sy = win.getContentSize()[0] / 1080;
-            var s = Math.min(sx, sy);
-            win.setContentSize(Math.floor(1920 * s), Math.floor(1080 * s), true);
+            if (mode == "slider") {
+                var win = remote.getCurrentWindow();
+                var sx = win.getContentSize()[0] / 1920;
+                var sy = win.getContentSize()[0] / 1080;
+                var s = Math.min(sx, sy);
+                win.setContentSize(Math.floor(1920 * s), Math.floor(1080 * s), true);
+            }
         }
         document.body.ondblclick();
 
         document.onkeydown = e => {
-            const actions = {
-                37: swiper.slidePrev, // left arrow
-                39: swiper.slideNext, // right arrow
-                40: nestedSwipers[swiper.realIndex].slideNext, // down arrow
-                38: nestedSwipers[swiper.realIndex].slidePrev // up arrow
+            if (mode == "slider") {
+                const actions = {
+                    37: swiper.slidePrev, // left arrow
+                    39: swiper.slideNext, // right arrow
+                    40: nestedSwipers[swiper.realIndex].slideNext, // down arrow
+                    38: nestedSwipers[swiper.realIndex].slidePrev // up arrow
+                }
+                if (typeof actions[e.keyCode] !== 'undefined')
+                    actions[e.keyCode]();
             }
-            if (typeof actions[e.keyCode] !== 'undefined')
-                actions[e.keyCode]();
         };
 
         function rearrangeConfig() {
@@ -639,7 +643,10 @@
             swiper.slideNext(true, miscConfig.idleAnimationDurationMs);
         }
 
+        var mode;
+
         function switchToSlider() {
+            mode = "slider";
             $('#slider').show();
         }
 
@@ -647,6 +654,7 @@
         var recipientAddress = '';
 
         function switchToMailMode(which) {
+            mode = "mail";
             bootbox.confirm({
                 title: 'Please enter your email address',
                 message: '<p>Select one of the input fields to open the on screen keyboard. Click outside the on screen keyboard to hide it.</p><br /><p><div class="form-group"><label for="emailName">Name:</label><input type="text" class="keyboard form-control" id="emailName"></div><div class="form-group"><label for="emailAddress">Email:</label><input type="text" class="keyboard form-control" id="emailAddress"></div></p>',
@@ -658,6 +666,7 @@
                         recipientName = '';
                         recipientAddress = '';
                     }
+                    switchToSlider();
                 }
             });
             $("#emailName").keyboard();
@@ -665,6 +674,7 @@
         }
 
         function switchToPrintMode(which) {
+            mode = "print";
             bootbox.confirm({
                 title: 'Confirm printing',
                 message: `<p class="dialog">Do you want to print: <em>"<b>${articles[which].authors.map( a => a.trim() ).join(", ")}:</b> ${articles[which].title.trim()}"</em>?<p>`,
@@ -672,6 +682,7 @@
                     if (result) {
                         print(which);
                     }
+                    switchToSlider();
                 }
             });
         }
