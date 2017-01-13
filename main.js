@@ -157,6 +157,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1920 / 2,
         height: 1080 / 2,
+        backgroundColor: '#000000',
         kiosk: settings.getSync("kiosk"),
         fullscreen: settings.getSync("fullscreen"),
         fullscreenable: true
