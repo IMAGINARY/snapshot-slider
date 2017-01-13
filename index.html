@@ -207,19 +207,22 @@
     </template>
     <script>
         var initNotification;
-        var initNotificationReady = new Promise((resolve, reject) => {
-                initNotification = $.notify({
-                    icon: "fa fa-circle-o-notch fa-spin fa-fw",
-                    title: "Initializing …",
-                    message: '<div id="progress"></div>'
-                }, {
-                    delay: 0,
-                    onShow: resolve,
-                    allow_dismiss: false
+
+        function initInitNotification() {
+            return new Promise((resolve, reject) => {
+                    initNotification = $.notify({
+                        icon: "fa fa-circle-o-notch fa-spin fa-fw",
+                        title: "Initializing …",
+                        message: '<div id="progress"></div>'
+                    }, {
+                        delay: 0,
+                        onShow: resolve,
+                        allow_dismiss: false
+                    })
                 })
-            })
-            .then(() => $("#progress").append($("#progressTemplate")[0].content.children))
-            .then(() => ["#progressCache", "#progressDocs", "#progressPages", "#progressRendered"].forEach(e => updateProgressBar(e)));
+                .then(() => $("#progress").append($("#progressTemplate")[0].content.children))
+                .then(() => ["#progressCache", "#progressDocs", "#progressPages", "#progressRendered"].forEach(e => updateProgressBar(e)));
+        }
 
         function updateProgressBar(progressBar, data) {
             $progressBar = $(progressBar);
@@ -886,77 +889,83 @@
             });
         }
 
-        var documentReady = Promise.promisify($(document).ready)
-        Promise.join(documentReady, initNotificationReady).then(() => {
-            var startTime = performance.now()
-            rearrangeConfig();
-            updateProgressBar("#progressCache", {
-                max: articles.length
-            });
-            updateProgressBar("#progressDocs", {
-                max: articles.length
-            });
-            initTopLevelSlides();
-            initSliders();
-            var cachePDFPromises = [];
-            var initDocumentPromises = [];
-            var initNestedSlidesPromises = [];
-            var initCompletePromises = [];
-            articles.forEach((article, which, a) => {
-                var cachePromise = initCache(which).catch(e => {
-                    notifyError("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
-                    throw e;
+        // GO!
+        new Promise((resolve, reject) => $(document).ready(resolve))
+            .then(miscConfig.snapshots.autoUpdate.enable ? () => {
+                notifyInfo("Starting update of SNAPSHOT list");
+                return updateSnapshotList().reflect();
+            } : Promise.resolve())
+            .then(initInitNotification)
+            .then(() => {
+                var startTime = performance.now()
+                rearrangeConfig();
+                updateProgressBar("#progressCache", {
+                    max: articles.length
                 });
-                var initDocumentPromise = cachePromise.then(() => initDocument(which).catch(e => {
-                    notifyError("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
-                    throw e;
-                }));
-                var initNestedSlidesPromise = initDocumentPromise.then(() => initNestedSlides(which).catchThrow(e => {
-                    notifyError("Initialization error",
-                        `Failed to render pages of "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
-                    throw e;
-                }));
+                updateProgressBar("#progressDocs", {
+                    max: articles.length
+                });
+                initTopLevelSlides();
+                initSliders();
+                var cachePDFPromises = [];
+                var initDocumentPromises = [];
+                var initNestedSlidesPromises = [];
+                var initCompletePromises = [];
+                articles.forEach((article, which, a) => {
+                    var cachePromise = initCache(which).catch(e => {
+                        notifyError("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                        throw e;
+                    });
+                    var initDocumentPromise = cachePromise.then(() => initDocument(which).catch(e => {
+                        notifyError("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                        throw e;
+                    }));
+                    var initNestedSlidesPromise = initDocumentPromise.then(() => initNestedSlides(which).catchThrow(e => {
+                        notifyError("Initialization error",
+                            `Failed to render pages of "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                        throw e;
+                    }));
 
-                cachePromise.finally(() => updateProgressBar("#progressCache", {
-                    now: 1,
-                    offset: true
-                }));
-                initNestedSlidesPromise.finally(() => {
-                    updateProgressBar("#progressDocs", {
+                    cachePromise.finally(() => updateProgressBar("#progressCache", {
                         now: 1,
                         offset: true
+                    }));
+                    initNestedSlidesPromise.finally(() => {
+                        updateProgressBar("#progressDocs", {
+                            now: 1,
+                            offset: true
+                        });
+                        updateProgressBar("#progressPages", {
+                            max: totalNumPages
+                        });
+                        updateProgressBar("#progressRendered", {
+                            max: totalNumPages
+                        });
                     });
-                    updateProgressBar("#progressPages", {
-                        max: totalNumPages
+
+                    var initCompletePromise = initNestedSlidesPromise.catch(e => {
+                        disableSnapshot(which);
+                        console.log("Problem processing snapshot", article, e);
                     });
-                    updateProgressBar("#progressRendered", {
-                        max: totalNumPages
-                    });
+
+                    cachePDFPromises.push(cachePromise);
+                    initDocumentPromises.push(initDocumentPromise);
+                    initNestedSlidesPromises.push(initNestedSlidesPromise);
+                    initCompletePromises.push(initCompletePromise);
                 });
 
-                var initCompletePromise = initNestedSlidesPromise.catch(e => {
-                    disableSnapshot(which);
-                    console.log("Problem processing snapshot", article, e);
-                });
-
-                cachePDFPromises.push(cachePromise);
-                initDocumentPromises.push(initDocumentPromise);
-                initNestedSlidesPromises.push(initNestedSlidesPromise);
-                initCompletePromises.push(initCompletePromise);
+                Promise.all(initNestedSlidesPromises).catch(() => notifyWarning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
+                Promise.all(initCompletePromises)
+                    .delay(1000)
+                    .then(() => initNotification.close())
+                    .then(() => {
+                        initComplete = true;
+                        //$('#progress').hide();
+                        initIdleHandlers();
+                        switchToSlider();
+                        console.log(`loading took ${(performance.now()-startTime)/1000.0}s`)
+                    });
             });
-
-            Promise.all(initNestedSlidesPromises).catch(() => notifyWarning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
-            Promise.all(initCompletePromises)
-                .delay(1000)
-                .then(() => initNotification.close())
-                .then(() => {
-                    initComplete = true;
-                    //$('#progress').hide();
-                    initIdleHandlers();
-                    switchToSlider();
-                    console.log(`loading took ${(performance.now()-startTime)/1000.0}s`)
-                });
-        });
     </script>
 </body>
 
