@@ -215,6 +215,14 @@
                         title: "Initializing …",
                         message: '<div id="progress"></div>'
                     }, {
+                        placement: {
+                            from: "bottom",
+                            align: "right"
+                        },
+                        animate: {
+                            enter: 'animated fadeInRight',
+                            exit: 'animated fadeOutRight'
+                        },
                         delay: 0,
                         onShow: resolve,
                         allow_dismiss: false
@@ -291,6 +299,14 @@
                 message: typeof message === 'undefined' ? "" : message + detailsHTML
             }, {
                 type: type,
+                placement: {
+                    from: "bottom",
+                    align: "right"
+                },
+                animate: {
+                    enter: 'animated fadeInRight',
+                    exit: 'animated fadeOutRight'
+                },
                 onClosed: () => {
                     delete _openNotifications[currId];
                     resolve();
