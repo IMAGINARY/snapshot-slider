@@ -249,8 +249,10 @@
             $(selector).attr(attr, parseInt($(selector).attr(attr), 10) + amount);
         }
 
+        var _openNotifications = {};
         function _notify(icon, title, message, details, type) {
             this.id = typeof this.id === "undefined" ? this.id = 0 : this.id + 1;
+            var currId = this.id;
 
             console.log({
                 id: this.id,
@@ -269,23 +271,27 @@
 
                 detailsHTML =
                     `
-                    <i class="fa fa-caret-down" aria-hidden="true" onClick="$('#collapsibleDetails${this.id}').collapse('show');$(this).css('display','none');$(this).next().css('display','');"></i>
-                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="$('#collapsibleDetails${this.id}').collapse('hide');$(this).css('display','none');$(this).prev().css('display','');"></i>
-                    <div id="collapsibleDetails${this.id}" class="collapse">
+                    <i class="fa fa-caret-down" aria-hidden="true" onClick="$('#collapsibleDetails${currId}').on('shown.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('show');$(this).css('display','none');$(this).next().css('display','');"></i>
+                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="$('#collapsibleDetails${currId}').on('hidden.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('hide');$(this).css('display','none');$(this).prev().css('display','');"></i>
+                    <div id="collapsibleDetails${currId}" class="collapse">
                         <pre class="notifyDetails">${details}</pre>
                     </div>
                 `;
             }
 
-            var notification = $.notify({
+            return new Promise((resolve, reject) => _openNotifications[currId] = $.notify({
                 icon: icon,
                 title: title,
                 message: typeof message === 'undefined' ? "" : message + detailsHTML
             }, {
                 type: type,
+                onClosed: () => {
+                    delete _openNotifications[currId];
+                    resolve();
+                },
                 delay: 4000,
                 mouse_over: 'pause'
-            });
+            }));
         }
 
         var notifySuccess = (title, message, details) => _notify("fa fa-check-square", title, message, details, "success");
