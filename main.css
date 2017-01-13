@@ -201,6 +201,7 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
 }
 
 .notifyDetails {
+    max-height: 300px;
     margin-top: 5px;
     margin-bottom: 5px;
     padding: 5px;
