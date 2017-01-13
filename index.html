@@ -338,13 +338,13 @@
         document.onkeydown = e => {
             if (mode == "slider") {
                 const actions = {
-                    37: swiper.slidePrev, // left arrow
-                    39: swiper.slideNext, // right arrow
-                    40: nestedSwipers[swiper.realIndex].slideNext, // down arrow
-                    38: nestedSwipers[swiper.realIndex].slidePrev // up arrow
-                }
-                if (typeof actions[e.keyCode] !== 'undefined')
-                    actions[e.keyCode]();
+                    "ArrowLeft": swiper.slidePrev, // left arrow
+                    "ArrowRight": swiper.slideNext, // right arrow
+                    "ArrowDown": nestedSwipers[swiper.realIndex].slideNext, // down arrow
+                    "ArrowUp": nestedSwipers[swiper.realIndex].slidePrev // up arrow
+                };
+                if (typeof actions[e.key] !== 'undefined')
+                    actions[e.key]();
             }
         };
 
