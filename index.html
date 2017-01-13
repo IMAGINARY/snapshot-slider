@@ -343,6 +343,7 @@
                     "ArrowDown": nestedSwipers[swiper.realIndex].slideNext, // down arrow
                     "ArrowUp": nestedSwipers[swiper.realIndex].slidePrev // up arrow
                 };
+                actions[miscConfig.snapshots.autoUpdate.shortcut] = switchToUpdateMode;
                 if (typeof actions[e.key] !== 'undefined')
                     actions[e.key]();
             }
@@ -660,6 +661,20 @@
         function switchToSlider() {
             mode = "slider";
             $('#slider').show();
+        }
+
+        function switchToUpdateMode() {
+            mode = "update";
+
+            bootbox.confirm({
+                title: 'Confirm update',
+                message: '<p class="dialog">Are you sure that you want to update the list of available SNAPSHOTS?<p>',
+                callback: function(result) {
+                    if (result)
+                        updateSnapshotList();
+                    switchToSlider();
+                }
+            });
         }
 
         function updateSnapshotList() {
