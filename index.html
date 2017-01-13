@@ -87,7 +87,7 @@
                 // verify response code
                 sendReq.on('response', response => {
                     if (response.statusCode !== 200)
-                        reject(new Error(`Download of ${url} failed with response code`));
+                        reject(response.statusCode);
                 });
 
                 // check for request errors
