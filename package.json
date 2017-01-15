@@ -85,6 +85,6 @@
             "category": "Education",
             "packageCategory": "Education"
         },
-        "extraFiles": ["content", "resources", "cache.sh"]
+        "extraFiles": []
     }
 }
