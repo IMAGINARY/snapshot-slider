@@ -6,6 +6,10 @@ const app = electron.app;
 //app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
 
 const settings = require('electron-settings');
+settings.defaults(require("./defaults.json"));
+settings.applyDefaultsSync({
+    prettify: true
+});
 
 function sw() {
 

@@ -21,10 +21,6 @@
         remote = require('electron').remote;
         window.validateJSON = require('jsonschema').validate;
         window.settings = require('electron-settings');
-        settings.defaults(require("./defaults.json"));
-        settings.applyDefaultsSync({
-            prettify: true
-        });
         var miscConfig = settings.getSync("");
         var articles = _.cloneDeep(miscConfig.snapshots.articles);
         var mailConfig = miscConfig.mail;
