@@ -33,8 +33,18 @@ there.
 SNAPSHOT PDF files are cached locally based on the urls supplied in the `Settings`
 file and stored in the directory `pdfCache` next to the `Settings` file.
 
-Corrupt files in the cache can cause the program to fail. Deleting the cache may
-help, but an internet connection is needed to fill the cache again.
+The SNAPSHOT slider is able to detect corrupted files in the cache via sha256 hash
+sums and will attempt to download such files again. This will fail if there is
+no internet connection or the SNAPSHOT URLs supplied in the `Settings` file are
+invalid.
+
+### Auto update
+
+The SNAPSHOT slider can automatically update the list of available SNAPSHOT PDFs
+and download them to te cache. The default hotkey is <kbd>u</kbd>, but updates can
+also be performed on program startup. However, this is discouraged if the program is
+presented in a public, unsupervised venue since server errors can easily break the
+installation.
 
 ## Building the redistributable packages
 
