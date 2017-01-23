@@ -9,11 +9,11 @@ On Ubuntu 14.04, you can try the following procedure:
 curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 sudo apt-get update
 sudo apt-get install nodejs git libcups2-dev
+sudo npm install --global yarn
 git clone https://github.com/IMAGINRY/snapshot-slider
 cd snapshot-slider
-npm install
-npm run rebuild
-npm run start
+yarn install
+yarn run start
 ```
 
 ## Settings
@@ -57,9 +57,8 @@ For Linux, also take a look at the [`Dockerfile`](Dockerfile) and its dependenci
 Now, you should be able to build the packages for your platform
 (only macOS and Linux supported at the moment):
 ```bash
-npm install
-npm purge
-npm run dist
+yarn install
+yarn run dist
 ```
 
 ## License [Apache License Version 2.0](LICENSE)

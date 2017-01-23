@@ -5,4 +5,5 @@ RUN apt-get update -y && \
   apt-get install --no-install-recommends -y libcups2-dev && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
-CMD npm install && npm prune && npm run dist
+RUN npm install --global yarn
+CMD yarn install && yarn run dist
