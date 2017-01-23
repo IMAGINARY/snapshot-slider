@@ -10,7 +10,7 @@
         "enable": true
     },
     "mail": {
-        "enable": true,
+        "enable": false,
         "senderName": "Snapshot station",
         "senderAddress": "snapshot-station@imaginary.org",
         "defaultRecipientName": "IMAGINARY user",
