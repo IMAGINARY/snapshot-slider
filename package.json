@@ -54,6 +54,7 @@
         "font-awesome": "^4.6.3"
     },
     "scripts": {
+        "postinstall": "electron-rebuild",
         "start": "electron .",
         "rebuild": "electron-rebuild",
         "pack": "build --dir",
