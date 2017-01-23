@@ -57,8 +57,8 @@
         "postinstall": "electron-rebuild",
         "start": "electron .",
         "rebuild": "electron-rebuild",
-        "pack": "build --dir",
-        "dist": "build"
+        "pack": "CSC_IDENTITY_AUTO_DISCOVERY=false build --dir",
+        "dist": "CSC_IDENTITY_AUTO_DISCOVERY=false build"
     },
     "build": {
         "appId": "org.imaginary.snapshot-slider",
