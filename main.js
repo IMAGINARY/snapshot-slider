@@ -3,6 +3,7 @@
 const electron = require('electron');
 // Module to control application life.
 const app = electron.app;
+const Menu = electron.Menu;
 
 const settings = require('electron-settings');
 settings.defaults(require("./defaults.json"));
@@ -45,8 +46,47 @@ function createWindow() {
     mainWindow.on('enter-full-screen', e => mainWindow.setAspectRatio(0.0))
     mainWindow.on('leave-full-screen', e => mainWindow.setAspectRatio(aspectRatio))
 
-    // disable menu bar
-    mainWindow.setMenu(null);
+    if (settings.getSync("kiosk") || process.platform !== 'darwin') {
+        // disable menu bar
+        mainWindow.setMenu(null);
+    } else {
+        // at least add any "About" menu item
+        const template = [{
+            label: app.getName(),
+            submenu: [{
+                    role: 'about',
+                },
+                /*
+                {
+                    type: 'separator'
+                },
+                {
+                    role: 'services',
+                    submenu: []
+                },
+                */
+                {
+                    type: 'separator'
+                },
+                {
+                    role: 'hide'
+                },
+                {
+                    role: 'hideothers'
+                },
+                {
+                    role: 'unhide'
+                },
+                {
+                    type: 'separator'
+                },
+                {
+                    role: 'quit'
+                }
+            ]
+        }];
+        Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    }
 
     // and load the index.html of the app.
     mainWindow.loadURL('file://' + __dirname + '/index.html');
