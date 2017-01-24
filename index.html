@@ -360,7 +360,7 @@
                     "ArrowDown": nestedSwipers[swiper.realIndex].slideNext, // down arrow
                     "ArrowUp": nestedSwipers[swiper.realIndex].slidePrev // up arrow
                 };
-                actions[miscConfig.snapshots.autoUpdate.shortcut] = switchToUpdateMode;
+                actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
                 if (typeof actions[e.key] !== 'undefined')
                     actions[e.key]();
             }

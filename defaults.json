@@ -92,7 +92,7 @@
         },
         "autoUpdate": {
             "enable": false,
-            "shortcut": "u",
+            "hotkey": "u",
             "url": "https://imaginary.org/api/snapshots.json"
         },
         "articles": [{
