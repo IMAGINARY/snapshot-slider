@@ -60,7 +60,7 @@ html {
     height: 100%;
 }
 body {
-    background: #777;
+    background: #111;
     font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
     font-size: 14px;
     margin: 0;
@@ -73,9 +73,6 @@ body {
     overflow: hidden;
 }
 
-* {
-    cursor: none;
-}
 .noselect {
     -webkit-touch-callout: none;
     /* iOS Safari */
@@ -91,18 +88,20 @@ body {
     /* non-prefixed version, currently
                                   not supported by any browser */
 }
+
+#full-hd-centered {
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
+    margin: auto;
+    transform-origin: top left;
+}
+
 .swiper-container-h {
     background: black;
     position: absolute;
     width: 1920px;
     height: 1080px;
-    /*
-    margin: 0px auto;
-    padding: 50px;
-    transform: scale( 0.875, 0.875 );
-    transform: scale( 0.6, 0.6 );
-*/
-    transform-origin: top left;
 }
 
 .swiper-container-v {
@@ -112,6 +111,8 @@ body {
 
 .swiper-slide-h {
     width: 717px;
+    height: 1080px;
+    overflow: hidden;
     text-align: center;
     font-size: 21px;
 }
@@ -142,6 +143,10 @@ body {
 }
 .button-bar > a:link {
     color: black;
+}
+
+.button-bar > .disabled {
+    color: #bbb;
 }
 
 .button-bar.overview {
@@ -181,11 +186,42 @@ body {
     background-color: white;
     bottom: 0px;
     right: 0px;
-    margin: 4px;
+    margin: 3px;
+    width: 56px;
+    height: 56px;
+}
+
+div[data-notify="container"] span[data-notify="title"] {
+    font-weight: bold;
+}
+
+div[data-notify="container"] span[data-notify="message"]:not(:empty) {
+    margin-top: 10px;
+    display: block;
+}
+
+.notifyDetails {
+    max-height: 300px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 5px;
+    border-radius: 4px;
+    background-color: white;
+    color: gray;
+    overflow: scroll;
 }
 
 #progress {
-    font-size: xx-large;
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+.progress {
+    margin-bottom: 0px;
+}
+
+.progress + .progress {
+    margin-top: 5px;
 }
 
 .dialog em b {
@@ -195,4 +231,23 @@ body {
 
 .dialog em {
     font-style: italic;
+}
+
+.loader {
+    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #555555; /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    margin: -60px 0 0 -60px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

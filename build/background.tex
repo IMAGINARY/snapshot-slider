@@ -1,0 +1,31 @@
+% compile with pdflatex --shell-escape
+\documentclass[
+	tikz,
+    multi=false,
+	border=0,
+	convert={
+		density=72,
+		outext=.png,
+		command=
+\unexpanded{{\convertexe\space -density \density\space \infile\space \ifx\size\empty\else -resize \size\fi \space -quality 90 -define png:color-type=6 \outfile}}
+	}
+]{standalone}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{moresize}
+\begin{document}
+	\huge
+    \begin{tikzpicture}[x=1pt, y=1pt]
+        \path[use as bounding box] (-266,-166.25) rectangle (266,166.25);
+        \node[align=center] at (0,0) {%
+            $\displaystyle\foreach \i in {1,...,22} {\int}$\\%
+            $\displaystyle\foreach \i in {1,...,22} {\int}$\\%
+            $\displaystyle\int\int\int\phantom{\foreach \i in {1,...,16} {\int}}\int\int\int$\\%
+            $\displaystyle\int\int\int\phantom{\foreach \i in {1,...,16} {\int}}\int\int\int$\\%
+            $\displaystyle\int\int\int\phantom{\foreach \i in {1,...,16} {\int}}\int\int\int$\\%
+            $\displaystyle\foreach \i in {1,...,22} {\int}$\\%
+            $\displaystyle\foreach \i in {1,...,22} {\int}$%
+        };
+		\node[scale=5] at (0,0) {$\Rightarrow$};
+    \end{tikzpicture}
+\end{document}
