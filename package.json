@@ -57,11 +57,12 @@
         "postinstall": "electron-rebuild",
         "start": "electron .",
         "rebuild": "electron-rebuild",
-        "pack": "CSC_IDENTITY_AUTO_DISCOVERY=false build --dir",
-        "dist": "CSC_IDENTITY_AUTO_DISCOVERY=false build"
+        "pack": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=false build --dir",
+        "dist": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=false build"
     },
     "build": {
         "appId": "org.imaginary.snapshot-slider",
+        "npmRebuild": false,
         "files": [
             "!node_modules/hummus/bin/**/*",
             "!node_modules/hummus/build/**/*",
