@@ -91,6 +91,10 @@
             "category": "Education",
             "packageCategory": "Education"
         },
-        "extraFiles": []
+        "extraResources": [{
+            "from": "build",
+            "to": ".",
+            "filter": "**/icon48x48.png"
+        }]
     }
 }

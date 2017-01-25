@@ -5,6 +5,7 @@ const electron = require('electron');
 const app = electron.app;
 const Menu = electron.Menu;
 
+const path = require('path');
 const settings = require('electron-settings');
 settings.defaults(require("./defaults.json"));
 settings.applyDefaultsSync({
@@ -21,6 +22,13 @@ settings.applyDefaultsSync({
     'flag-switches-begin'
 ].forEach(app.commandLine.appendSwitch);
 
+function getLinuxIcon() {
+    if(process.mainModule.filename.indexOf('app.asar') === -1)
+        return path.resolve(__dirname, 'build', 'icon48x48.png');
+    else
+        return path.resolve(__dirname, '..', 'icon48x48.png');
+}
+
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
@@ -30,14 +38,20 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({
+
+    const options = {
         width: 1920 / 2,
         height: 1080 / 2,
         backgroundColor: '#000000',
         kiosk: settings.getSync("kiosk"),
         fullscreen: settings.getSync("fullscreen"),
         fullscreenable: true
-    });
+    };
+
+    if(process.platform === 'linux')
+        options.icon = getLinuxIcon();
+
+    mainWindow = new BrowserWindow(options);
 
     // fix aspect ratio (macOS only)
     const aspectRatio = 16.0 / 9.0;
