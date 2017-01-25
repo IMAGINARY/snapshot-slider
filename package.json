@@ -1,7 +1,7 @@
 {
     "name": "snapshot-slider",
     "productName": "SNAPSHOT slider",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "A slider to present, print and email Snapshots of modern mathematics from Oberwolfach",
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "repository": {
