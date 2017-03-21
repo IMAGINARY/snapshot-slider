@@ -1,7 +1,7 @@
 {
     "name": "snapshot-slider",
     "productName": "SNAPSHOT slider",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A slider to present, print and email Snapshots of modern mathematics from Oberwolfach",
     "homepage": "https://github.com/IMAGINARY/snapshot-slider#readme",
     "repository": {
@@ -57,8 +57,8 @@
         "postinstall": "electron-rebuild",
         "start": "electron .",
         "rebuild": "electron-rebuild",
-        "pack": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=false build --dir",
-        "dist": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=false build"
+        "pack": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=true build --dir",
+        "dist": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=true build"
     },
     "build": {
         "appId": "org.imaginary.snapshot-slider",
