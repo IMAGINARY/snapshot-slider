@@ -23,9 +23,8 @@
     "author": "IMAGINARY gGmbH <info@imaginary.org>",
     "license": "Apache-2.0",
     "devDependencies": {
-        "electron": "^1.4.12",
-        "electron-builder": "^10.8.1",
-        "electron-rebuild": "^1.4.0"
+        "electron": "^2.0.0",
+        "electron-builder": "^20.13.3"
     },
     "dependencies": {
         "animate.css": "^3.5.2",
@@ -55,15 +54,13 @@
         "webpack": "^2.0.0 || ^3.0.0 || ^4.0.0"
     },
     "scripts": {
-        "postinstall": "electron-rebuild",
+        "postinstall": "electron-builder install-app-deps",
         "start": "electron .",
-        "rebuild": "electron-rebuild",
-        "pack": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=true build --dir",
-        "dist": "electron-rebuild && CSC_IDENTITY_AUTO_DISCOVERY=true build"
+        "pack": "DEBUG=electron-builder CSC_IDENTITY_AUTO_DISCOVERY=true build --dir",
+        "dist": "DEBUG=electron-builder CSC_IDENTITY_AUTO_DISCOVERY=true build"
     },
     "build": {
         "appId": "org.imaginary.snapshot-slider",
-        "npmRebuild": false,
         "files": [
             "!node_modules/hummus/bin/**/*",
             "!node_modules/hummus/build/**/*",
