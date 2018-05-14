@@ -44,8 +44,8 @@
         window.htmlToText = require('html-to-text');
         window.format = require('string-template');
 
-        require("pdfjs-dist");
-        window.PDFJS.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
+        window.PDFJS = require("pdfjs-dist");
+        window.PDFJS.GlobalWorkerOptions.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
 
         // create reusable transporter object using the default SMTP transport
         window.transporter = nodemailer.createTransport(mailConfig.smtp);
