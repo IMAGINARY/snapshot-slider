@@ -22,7 +22,7 @@
         remote = require('electron').remote;
         window.validateJSON = require('jsonschema').validate;
         window.settings = require('electron-settings');
-        var miscConfig = settings.getSync("");
+        var miscConfig = settings.getAll();
         var articles = _.cloneDeep(miscConfig.snapshots.articles);
         var mailConfig = miscConfig.mail;
         if (typeof mailConfig.text !== "undefined" && mailConfig.text !== null)
@@ -69,13 +69,14 @@
         var streamBuffers = require('stream-buffers');
         var printer = require('printer');
 
-        var pdfCacheDirname = path.join(path.dirname(settings.getSettingsFilePath()), "pdfCache");
-        var pngCacheDirname = path.join(path.dirname(settings.getSettingsFilePath()), "pngCache");
+        const userDataDir = remote.app.getPath("userData");
+        var pdfCacheDirname = path.join(userDataDir, "pdfCache");
+        var pngCacheDirname = path.join(userDataDir, "pngCache");
         fsExtra.mkdirpSync(pdfCacheDirname, {
-            mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+            mode: fs.statSync(userDataDir).mode
         });
         fsExtra.mkdirpSync(pngCacheDirname, {
-            mode: fs.statSync(path.dirname(settings.getSettingsFilePath())).mode
+            mode: fs.statSync(userDataDir).mode
         });
 
         function download(url, dest) {
@@ -389,7 +390,7 @@
             articles.reverse();
 
             // put overview page to the beginning
-            var frontPage = settings.getSync("snapshots.frontPage");
+            var frontPage = settings.get("snapshots.frontPage");
             frontPage.isFrontPage = true;
             articles.unshift(frontPage);
 

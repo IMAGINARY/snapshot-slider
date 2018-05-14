@@ -678,9 +678,9 @@ cliui@^4.0.0:
     strip-ansi "^4.0.0"
     wrap-ansi "^2.0.0"
 
-clone@^1.0.2:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
+clone@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.1.tgz#d217d1e961118e3ac9a4b8bba3285553bf647cdb"
 
 co@^4.6.0:
   version "4.6.0"
@@ -910,14 +910,6 @@ decode-uri-component@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
 
-deep-equal@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-1.0.1.tgz#f5d260292b660e084eff4cdbc9f08ad3247448b5"
-
-deep-extend@^0.4.1:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.4.2.tgz#48b699c27e334bf89f10892be432f6e4c7d34a7f"
-
 deep-extend@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.5.1.tgz#b894a9dd90d3023fbf1c55a394fb858eb2066f1f"
@@ -1121,17 +1113,12 @@ electron-publish@20.13.2:
     lazy-val "^1.0.3"
     mime "^2.3.1"
 
-electron-settings@^2.2.2:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/electron-settings/-/electron-settings-2.2.4.tgz#76afd53d9a4aac02fc0c2afcafd2533e80478593"
+electron-settings@^3.1.4:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/electron-settings/-/electron-settings-3.1.4.tgz#1b670837fd00626395714210291fb4af8ff52880"
   dependencies:
-    clone "^1.0.2"
-    debug "^2.2.0"
-    deep-equal "^1.0.1"
-    deep-extend "^0.4.1"
-    file-exists "^2.0.0"
-    fs-extra "^0.30.0"
-    key-path-helpers "^0.4.0"
+    clone "^2.1.1"
+    jsonfile "^4.0.0"
 
 electron@^2.0.0:
   version "2.0.0"
@@ -1315,10 +1302,6 @@ fd-slicer@~1.0.1:
   resolved "https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.0.1.tgz#8b5bcbd9ec327c5041bf9ab023fd6750f1177e65"
   dependencies:
     pend "~1.2.0"
-
-file-exists@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/file-exists/-/file-exists-2.0.0.tgz#a24150665150e62d55bc5449281d88d2b0810dca"
 
 fill-range@^4.0.0:
   version "4.0.0"
@@ -2025,10 +2008,6 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-key-path-helpers@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/key-path-helpers/-/key-path-helpers-0.4.0.tgz#e87f6a159144adf2692e46f2a4641ce269c09119"
-
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"
@@ -2215,6 +2194,10 @@ meow@^3.1.0:
     read-pkg-up "^1.0.1"
     redent "^1.0.0"
     trim-newlines "^1.0.0"
+
+merge-json@^0.1.0-b.3:
+  version "0.1.0-b.3"
+  resolved "https://registry.yarnpkg.com/merge-json/-/merge-json-0.1.0-b.3.tgz#448e118424c7752af2adca83fbb049758596a680"
 
 micromatch@^3.1.4, micromatch@^3.1.8:
   version "3.1.10"

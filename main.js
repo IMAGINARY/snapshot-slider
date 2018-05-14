@@ -6,11 +6,6 @@ const app = electron.app;
 const Menu = electron.Menu;
 
 const path = require('path');
-const settings = require('electron-settings');
-settings.defaults(require("./defaults.json"));
-settings.applyDefaultsSync({
-    prettify: true
-});
 
 // Append Chromium command line switches
 [
@@ -29,6 +24,16 @@ function getLinuxIcon() {
         return path.resolve(__dirname, '..', 'icon48x48.png');
 }
 
+// Add default values to current settings file
+function addDefaultSettings(settings) {
+    const mergeJSON = require("merge-json");
+    const defaults = require("./defaults.json");
+    const withDefaultSettings = mergeJSON.merge(defaults, settings.getAll());
+    settings.setAll(withDefaultSettings, {
+        prettify: true
+    });
+}
+
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
@@ -36,15 +41,15 @@ const BrowserWindow = electron.BrowserWindow;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow() {
+function createWindow(settings) {
     // Create the browser window.
 
     const options = {
         width: 1920 / 2,
         height: 1080 / 2,
         backgroundColor: '#000000',
-        kiosk: settings.getSync("kiosk"),
-        fullscreen: settings.getSync("fullscreen"),
+        kiosk: settings.get("kiosk"),
+        fullscreen: settings.get("fullscreen"),
         fullscreenable: true
     };
 
@@ -60,7 +65,7 @@ function createWindow() {
     mainWindow.on('enter-full-screen', e => mainWindow.setAspectRatio(0.0))
     mainWindow.on('leave-full-screen', e => mainWindow.setAspectRatio(aspectRatio))
 
-    if (settings.getSync("kiosk") || process.platform !== 'darwin') {
+    if (settings.get("kiosk") || process.platform !== 'darwin') {
         // disable menu bar
         mainWindow.setMenu(null);
     } else {
@@ -106,7 +111,7 @@ function createWindow() {
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools.
-    if (settings.getSync("devTools"))
+    if (settings.get("devTools"))
         mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
@@ -120,7 +125,11 @@ function createWindow() {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-app.on('ready', createWindow);
+app.on('ready', () => {
+    const settings = require("electron-settings");
+    addDefaultSettings(settings);
+    createWindow(settings);
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
