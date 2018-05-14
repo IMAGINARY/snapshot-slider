@@ -54,7 +54,7 @@
         "webpack": "^2.0.0 || ^3.0.0 || ^4.0.0"
     },
     "scripts": {
-        "postinstall": "electron-builder install-app-deps",
+        "postinstall": "DEBUG=electron-builder electron-builder install-app-deps",
         "start": "electron .",
         "pack": "DEBUG=electron-builder CSC_IDENTITY_AUTO_DISCOVERY=true build --dir",
         "dist": "DEBUG=electron-builder CSC_IDENTITY_AUTO_DISCOVERY=true build"
