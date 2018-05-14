@@ -30,7 +30,10 @@
         if (typeof mailConfig.html !== "undefined" && mailConfig.html !== null)
             mailConfig.html = mailConfig.html.join("\n");
 
-        window.$ = window.jQuery = require("jquery");
+        // TODO: complete migration to jQuery v3 depends on bootbox support
+        window.$ = window.jQuery = require("jquery-migrate");
+        window.jQuery.migrateTrace = false;
+        
         require('bootstrap');
         require('bootstrap-notify');
         window.bootbox = require('bootbox');
