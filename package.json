@@ -44,7 +44,7 @@
         "jsonschema": "^1.1.1",
         "lodash": "^4.17.10",
         "merge-json": "^0.1.0-b.3",
-        "nodemailer": "^2.4.2",
+        "nodemailer": "^4.6.4",
         "pdfjs-dist": "^1.6.414",
         "printer": "^0.2.2",
         "qr-image": "^3.1.0",
