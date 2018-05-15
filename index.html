@@ -682,7 +682,7 @@
         function idleAction() {
             bootbox.hideAll();
             nestedSwipers[(swiper.activeIndex + 2) % articles.length].slideTo(0, 0);
-            swiper.slideNext(true, miscConfig.idleAnimationDurationMs);
+            swiper.slideNext(miscConfig.idleAnimationDurationMs,true);
         }
 
         var mode;
