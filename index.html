@@ -37,7 +37,7 @@
         require('bootstrap');
         require('bootstrap-notify');
         window.bootbox = require('bootbox');
-        require("swiper");
+        window.Swiper = require("swiper");
         window.qrImage = require("qr-image");
 
         window.nodemailer = require('nodemailer');
@@ -560,7 +560,7 @@
                         const slide = swiper.slides[i % swiper.slides.length];
                         slide.style.visibility = "visible";
                         const tlSlideIndex = slide.getAttribute("data-swiper-slide-index");
-                        const nestedSwiper = nestedSwipers[tlSlideIndex].container[0];
+                        const nestedSwiper = nestedSwipers[tlSlideIndex].el;
 
                         nestedSwipers[tlSlideIndex].slides.each((j, nestedSlide) => {
                             var image = $(nestedSlide).find("img");
