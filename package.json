@@ -22,6 +22,9 @@
     ],
     "author": "IMAGINARY gGmbH <info@imaginary.org>",
     "license": "Apache-2.0",
+    "engines" : {
+        "npm": ">=5.2.0"
+    },
     "devDependencies": {
         "electron": "^2.0.0",
         "electron-builder": "^20.13.3"
