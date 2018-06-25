@@ -26,6 +26,7 @@
         "npm": ">=5.2.0"
     },
     "devDependencies": {
+        "yarn": "^1.7.0",
         "electron": "^2.0.0",
         "electron-builder": "^20.13.3"
     },
