@@ -795,14 +795,10 @@
                                 } else {
                                     settings.set("snapshots.articles", json.snapshots, {
                                             prettify: true
-                                        })
-                                        .then(() => notifySuccess(successNotificationTitle, "Reloading …", json))
-                                        .then(() => location.reload())
-                                        .catch(err => {
-                                            notifyError(errorNotificationTitle, "The list could not be written to the settings file.", err);
-                                            reject(err);
-                                        })
-                                        .then(resolve);
+                                        });
+                                    notifySuccess(successNotificationTitle, "Reloading …", json)
+                                        .then(resolve)
+                                        .then(() => location.reload());
                                 }
                             }
                         } catch (jsonErr) {
