@@ -26,12 +26,9 @@ function getLinuxIcon() {
 
 // Add default values to current settings file
 function addDefaultSettings(settings) {
-    const mergeJSON = require("merge-json");
+    const _ = require('lodash');
     const defaults = require("./defaults.json");
-    const withDefaultSettings = mergeJSON.merge(defaults, settings.getAll());
-    settings.setAll(withDefaultSettings, {
-        prettify: true
-    });
+    settings.setAll(_.merge(defaults, settings.getAll()), {prettify: true});
 }
 
 // Module to create native browser window.
