@@ -549,7 +549,7 @@
 
         function initSliders() {
             var lastActiveIndex = -1;
-            var triggerAgain;
+            var triggerAgain = false;
             var callback = function() {
                 if (lastActiveIndex != swiper.activeIndex && initComplete) {
                     console.log("reassigning slides");
@@ -602,13 +602,27 @@
                 freeModeSticky: true,
                 freeModeMomentumRatio: 0.25,
                 centeredSlides: true,
-                onSlideChangeStart: function(swiper) {
-                    triggerAgain = true;
-                    window.requestAnimationFrame(callback);
-                },
-                onSlideChangeEnd: function(swiper) {
-                    triggerAgain = true;
-                },
+                slideReassignCallback: callback,
+                on: {
+                    slideChangeTransitionStart: function(swiper) {
+                        triggerAgain = true;
+                        window.requestAnimationFrame(callback);
+                    },
+                    slideChangeTransitionEnd: function(swiper) {
+                        triggerAgain = false;
+                    },
+                    transitionStart: function(swiper) {
+                        triggerAgain = true;
+                        window.requestAnimationFrame(callback);
+                    },
+                    transitionEnd: function(swiper) {
+                        triggerAgain = false;
+                    },
+                    sliderMove: function(swiper) {
+                        window.requestAnimationFrame(callback);
+                    },
+                }
+
             };
             swiper = new Swiper('#slider', swiperConfig);
             for (var i = 0; i < swiper.slides.length; i++)
@@ -986,6 +1000,7 @@
                     .then(() => initNotification.close())
                     .then(() => {
                         initComplete = true;
+                        window.requestAnimationFrame(swiper.params.slideReassignCallback);
                         //$('#progress').hide();
                         initIdleHandlers();
                         switchToSlider();
