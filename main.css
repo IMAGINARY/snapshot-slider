@@ -100,8 +100,10 @@ body {
 .swiper-container-h {
     background: black;
     position: absolute;
-    width: 1920px;
+    left: calc( calc( 1920px - 2307px ) / 2 );
+    width: 2307px;
     height: 1080px;
+    overflow: hidden;
 }
 
 .swiper-container-v {
@@ -117,9 +119,23 @@ body {
     font-size: 21px;
 }
 
+.slide-wrapper {
+    height: 1080px;
+}
+
 .swiper-slide-v {
-    height: auto;
+    height: 1014px;
     font-size: 0;
+
+    /* center the page within the slide and hide possible overflow */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.swiper-slide-v img {
+    position: absolute;
 }
 
 .button-bar {
