@@ -73,14 +73,22 @@
         var printer = require('printer');
 
         const userDataDir = remote.app.getPath("userData");
-        var pdfCacheDirname = path.join(userDataDir, "pdfCache");
-        var pngCacheDirname = path.join(userDataDir, "pngCache");
-        fsExtra.mkdirpSync(pdfCacheDirname, {
-            mode: fs.statSync(userDataDir).mode
-        });
-        fsExtra.mkdirpSync(pngCacheDirname, {
-            mode: fs.statSync(userDataDir).mode
-        });
+        const cacheDir = path.join(path.dirname(require('cachedir')('dummy')),remote.app.getName());
+        fsExtra.mkdirpSync(cacheDir);
+        console.log(cacheDir);
+        const pdfCacheDirname = path.join(cacheDir, "pdf");
+        const pngCacheDirname = path.join(cacheDir, "png");
+        {
+            // migrate old caches of PDF and PNG files to new location
+            const oldPdfCacheDirname = path.join(userDataDir, "pdfCache");
+            if(!fs.existsSync(pdfCacheDirname) && fs.existsSync(oldPdfCacheDirname))
+                fs.renameSync(oldPdfCacheDirname,pdfCacheDirname);
+            const oldPngCacheDirname = path.join(userDataDir, "pngCache");
+            if(!fs.existsSync(pngCacheDirname) && fs.existsSync(oldPngCacheDirname))
+                fs.renameSync(oldPngCacheDirname,pngCacheDirname);
+        }
+        fsExtra.mkdirpSync(pdfCacheDirname);
+        fsExtra.mkdirpSync(pngCacheDirname);
 
         function download(url, dest) {
             return new Promise((resolve, reject) => {
