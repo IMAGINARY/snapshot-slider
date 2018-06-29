@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>SNAPSHOT slider</title>
+    <base href="../../">
     <!-- Link Swiper's CSS -->
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css">
@@ -15,11 +16,12 @@
 
     <!-- load some node.js packages -->
     <script>
+        remote = require('electron').remote;
         var _ = require('lodash');
         var Promise = require("bluebird");
-        var packageJson = require('./package.json');
+        window.path = require('path');
+        var packageJson = require(path.join(remote.app.getAppPath(),'package.json'));
         var semver = require('semver');
-        remote = require('electron').remote;
         window.validateJSON = require('jsonschema').validate;
         window.settings = require('electron-settings');
         var miscConfig = settings.getAll();
@@ -33,7 +35,7 @@
         // TODO: complete migration to jQuery v3 depends on bootbox support
         window.$ = window.jQuery = require("jquery-migrate");
         window.jQuery.migrateTrace = false;
-        
+
         require('bootstrap');
         require('bootstrap-notify');
         window.bootbox = require('bootbox');
@@ -61,7 +63,6 @@
 
         window.fs = require('fs');
         window.fsExtra = require('fs-extra');
-        window.path = require('path');
         window.hashFiles = function(options) {
             return new Promise((resolve, reject) => hashFiles._hashFilesNodeBack(options, (err, hash) => err ? reject(err) : resolve(hash)));
         };
