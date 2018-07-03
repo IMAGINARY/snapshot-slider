@@ -21,8 +21,6 @@
         var Promise = require("bluebird");
         window.path = require('path');
         var packageJson = require(path.join(remote.app.getAppPath(),'package.json'));
-        var semver = require('semver');
-        window.validateJSON = require('jsonschema').validate;
         window.settings = require('electron-settings');
         var miscConfig = settings.getAll();
         var articles = _.cloneDeep(miscConfig.snapshots.articles);
@@ -73,6 +71,7 @@
         const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
         const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
         const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
+        const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
 
         const snapshotMailer = new SnapshotMailer(mailConfig);
         snapshotMailer.testConnection()
@@ -528,110 +527,6 @@
             });
         }
 
-        function updateSnapshotList() {
-            var errorNotificationTitle = "Update of SNAPSHOT list failed";
-            var successNotificationTitle = "Update of SNAPSHOT list successful";
-
-            return new Promise((resolve, reject) => {
-                request.get({
-                    url: miscConfig.snapshots.autoUpdate.url,
-                }, (err, res, body) => {
-                    if (err) {
-                        notifyError(errorNotificationTitle, "The list could not be downloaded.", err);
-                        reject(err);
-                    } else if (res.statusCode !== 200) {
-                        notifyError(errorNotificationTitle, "The list could not be downloaded.", `Unexpected HTTP status code${res.statusCode}`);
-                        reject(res.statusCode);
-                    } else {
-                        try {
-                            var json = JSON.parse(body);
-
-                            var expectedSemVer = '1.x';
-                            if (json.version && !semver.satisfies(json.version, '1.x')) {
-                                var versionError = new Error(`Semantic version mismatch.\nExpected: ${expectedSemVer}\nSupplied: ${json.version}`);
-                                notifyError(errorNotificationTitle, `Version mismatch: ${json.version} vs. ${expectedSemVer}`, versionError);
-                                reject(versionError);
-                            } else {
-                                var schema = {
-                                    type: "object",
-                                    properties: {
-                                        "version": {
-                                            type: "string",
-                                            required: true
-                                        },
-                                        "snapshots": {
-                                            type: "array",
-                                            required: true,
-                                            items: {
-                                                type: "object",
-                                                properties: {
-                                                    "title": {
-                                                        type: "string",
-                                                        required: true
-                                                    },
-                                                    "url": {
-                                                        type: "string",
-                                                        required: true,
-                                                        format: "uri"
-                                                    },
-                                                    "url_short": {
-                                                        type: "string",
-                                                        required: true,
-                                                        format: "uri"
-                                                    },
-                                                    "pdf": {
-                                                        type: "string",
-                                                        required: true,
-                                                        format: "uri"
-                                                    },
-                                                    "sha256": {
-                                                        type: "string",
-                                                        required: true,
-                                                        pattern: /^[0-9a-f]{64}$/
-                                                    },
-                                                    "authors": {
-                                                        type: "array",
-                                                        required: true,
-                                                        items: {
-                                                            type: "string"
-                                                        }
-                                                    },
-                                                    "doi": {
-                                                        type: "string",
-                                                        required: true,
-                                                        pattern: new RegExp('^(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)$')
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                };
-
-                                validateJSON(json, schema, {
-                                    throwError: true
-                                });
-
-                                if (_.isEqual(json.snapshots, miscConfig.snapshots.articles)) {
-                                    notifySuccess(successNotificationTitle, "No change detected.", json);
-                                    resolve();
-                                } else {
-                                    settings.set("snapshots.articles", json.snapshots, {
-                                            prettify: true
-                                        });
-                                    notifySuccess(successNotificationTitle, "Reloading …", json)
-                                        .then(resolve)
-                                        .then(() => location.reload());
-                                }
-                            }
-                        } catch (jsonErr) {
-                            notifyError(errorNotificationTitle, "The downloaded list is invalid.", jsonErr);
-                            reject(jsonErr);
-                        }
-                    }
-                });
-            });
-        }
-
         function switchToMailMode(snapshot) {
             mode = "mail";
             bootbox.confirm({
@@ -669,6 +564,38 @@
             return SnapshotPrinter.print(snapshot.cachedPdf)
                 .then(() => notifySuccess('File has been sent to the printer'))
                 .catch(error => notifyError('Print job failed', 'Please check the error message', error));
+        }
+
+
+        async function updateSnapshotList() {
+            const errorNotificationTitle = "Update of SNAPSHOT list failed";
+            const successNotificationTitle = "Update of SNAPSHOT list successful";
+
+            try {
+                const newSnapshotList = await SnapshotListUpdater.update(miscConfig.snapshots.autoUpdate.url);
+                if (_.isEqual(newSnapshotList.snapshots, miscConfig.snapshots.articles)) {
+                    notifySuccess(successNotificationTitle, "No change detected.", newSnapshotList);
+                } else {
+                    settings.set("snapshots.articles", newSnapshotList.snapshots, {
+                        prettify: true
+                    });
+                    notifySuccess(successNotificationTitle, "Reloading …", newSnapshotList)
+                        .then(() => location.reload());
+                }
+
+            } catch( error ) {
+                switch( error.errorCode ) {
+                    case SnapshotListUpdater.UpdateError.ERROR_DOWNLOAD_FAILED:
+                        notifyError(errorNotificationTitle, "The list could not be downloaded.", error.cause);
+                        break;
+                    case SnapshotListUpdater.UpdateError.ERROR_VERSION_MISMATCH:
+                        notifyError(errorNotificationTitle, "Online data has wrong version tag.", error.cause);
+                        break;
+                    case SnapshotListUpdater.UpdateError.ERROR_VALIDATION_FAILED:
+                        notifyError(errorNotificationTitle, "The downloaded list is invalid.", error.cause);
+                        break;
+                }
+            }
         }
 
         // GO!
