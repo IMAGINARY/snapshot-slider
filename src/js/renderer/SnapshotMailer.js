@@ -28,8 +28,13 @@ module.exports = class SnapshotMailer {
             defaultRecipientName: recipientName
         });
 
-        const formattedHtml = substUrls(this.mailConfig.html);
-        const formattedText = typeof this.mailConfig.text !== 'undefined' && this.mailConfig.text != null ? substUrls(this.mailConfig.text) : htmlToText.fromString(formattedHtml, {
+        // the email text and html can be specified in several lines for easier editing => join them
+        const joinLinesSafe = string => typeof string !== "undefined" && string !== null ? string.join("\n") : string;
+        const html = joinLinesSafe(this.mailConfig.html);
+        const text = joinLinesSafe(this.mailConfig.text);
+
+        const formattedHtml = substUrls(html);
+        const formattedText = typeof text !== 'undefined' && text != null ? substUrls(text) : htmlToText.fromString(formattedHtml, {
             hideLinkHrefIfSameAsText: true
         });
 

@@ -25,11 +25,6 @@
         var miscConfig = settings.getAll();
         var articles = _.cloneDeep(miscConfig.snapshots.articles);
         var snapshots; // to be initialized after rearrangement of SNAPSHOT list
-        var mailConfig = miscConfig.mail;
-        if (typeof mailConfig.text !== "undefined" && mailConfig.text !== null)
-            mailConfig.text = mailConfig.text.join("\n");
-        if (typeof mailConfig.html !== "undefined" && mailConfig.html !== null)
-            mailConfig.html = mailConfig.html.join("\n");
 
         // TODO: complete migration to jQuery v3 depends on bootbox support
         window.$ = window.jQuery = require("jquery-migrate");
@@ -73,7 +68,7 @@
         const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
         const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
 
-        const snapshotMailer = new SnapshotMailer(mailConfig);
+        const snapshotMailer = new SnapshotMailer(miscConfig.mail);
         snapshotMailer.testConnection()
             .then(info => notifySuccess('Mail server is ready to take messages', ""))
             .catch(error => notifyError('Connection to mail server failed', 'Please check the error message', error));
