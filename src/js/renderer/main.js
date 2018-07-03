@@ -1,4 +1,4 @@
-(function() {
+(function () {
     const remote = require('electron').remote;
     const path = require('path');
     const fromBaseDir = modulePath => path.join(remote.app.getAppPath(), modulePath);
@@ -63,7 +63,7 @@
         lastCSS.insertRule("* { cursor: none; }", lastCSS.cssRules.length);
     }
 
-    window.onresize = e => {
+    window.onresize = () => {
         const sx = $(window).width() / 1920;
         const sy = $(window).height() / 1080;
         const s = Math.min(sx, sy);
@@ -71,22 +71,22 @@
         fullHdCentered.style.transform = `scale(${s})`;
         fullHdCentered.style.left = `${($(window).width() - 1920 * s) / 2.0}px`;
         fullHdCentered.style.top = `${($(window).height() - 1080 * s) / 2.0}px`;
-    }
+    };
     window.onresize();
 
-    document.body.ondblclick = e => {
-        if (mode == "slider") {
+    document.body.ondblclick = () => {
+        if (mode === "slider") {
             const win = remote.getCurrentWindow();
             const sx = win.getContentSize()[0] / 1920;
             const sy = win.getContentSize()[0] / 1080;
             const s = Math.min(sx, sy);
             win.setContentSize(Math.floor(1920 * s), Math.floor(1080 * s), true);
         }
-    }
+    };
     document.body.ondblclick();
 
     document.onkeydown = e => {
-        if (mode == "slider") {
+        if (mode === "slider") {
             const actions = {
                 "i": about,
                 "ArrowLeft": () => swiper.slidePrev(), // left arrow
@@ -183,7 +183,7 @@
         let lastActiveIndex = -1;
         let triggerAgain = false;
         const callback = function () {
-            if (lastActiveIndex != swiper.activeIndex && initComplete) {
+            if (lastActiveIndex !== swiper.activeIndex && initComplete) {
                 const rearrangement = {};
                 for (let i = swiper.activeIndex - 5; i <= swiper.activeIndex + 5; i++) {
                     const slide = swiper.slides[i];
@@ -202,7 +202,7 @@
             }
             if (triggerAgain)
                 window.requestAnimationFrame(callback);
-        }
+        };
 
         const swiperConfig = {
             direction: 'horizontal',
@@ -220,23 +220,17 @@
             centeredSlides: true,
             slideReassignCallback: callback,
             on: {
-                slideChangeTransitionStart: function (swiper) {
+                slideChangeTransitionStart: () => {
                     triggerAgain = true;
                     window.requestAnimationFrame(callback);
                 },
-                slideChangeTransitionEnd: function (swiper) {
-                    triggerAgain = false;
-                },
-                transitionStart: function (swiper) {
+                slideChangeTransitionEnd: () => triggerAgain = false,
+                transitionStart: () => {
                     triggerAgain = true;
                     window.requestAnimationFrame(callback);
                 },
-                transitionEnd: function (swiper) {
-                    triggerAgain = false;
-                },
-                sliderMove: function (swiper) {
-                    window.requestAnimationFrame(callback);
-                },
+                transitionEnd: () => triggerAgain = false,
+                sliderMove: () => window.requestAnimationFrame(callback),
             }
 
         };
@@ -268,20 +262,20 @@
 
     function initIdleHandlers() {
         let idle_timer = null;
-        const init_idle_timer = function (delay) {
+        const init_idle_timer = delay => {
             if (idle_timer != null)
                 clearTimeout(idle_timer);
             idle_timer = setTimeout(idle_handler, delay);
-        }
-        const non_idle_handler = function (evt) {
+        };
+        const non_idle_handler = () => {
             console.log("non_idle_handler");
             init_idle_timer(miscConfig.idleModeDelayMs);
-        }
-        const idle_handler = function () {
+        };
+        const idle_handler = () => {
             console.log("idle_handler");
             idleAction();
             init_idle_timer(miscConfig.idleModeDelayBetweenActionsMs);
-        }
+        };
 
         document.body.addEventListener('mouseup', non_idle_handler, true);
         document.body.addEventListener('mousemove', non_idle_handler, true);
@@ -395,13 +389,13 @@
     }
 
 // GO!
-    new Promise((resolve, reject) => $(document).ready(resolve))
+    new Promise(resolve => $(document).ready(resolve))
         .then(miscConfig.snapshots.autoUpdate.enable ? () => {
             notify.info("Starting update of SNAPSHOT list");
             return updateSnapshotList().reflect();
         } : Promise.resolve())
         .then(() => {
-            const startTime = performance.now()
+            const startTime = performance.now();
             const articles = preprocessSnapshotList(miscConfig.snapshots);
             snapshots = articles.map(article => new Snapshot(article, {
                 cacheDir: cacheDir,
