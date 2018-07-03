@@ -34,8 +34,8 @@ module.exports = class Snapshot {
         this._cachePagePromiseCache = {};
 
         this.initPromise = new Promise(resolve => setTimeout(resolve, 0))
-            .then(() => fs.mkdirp(pdfCacheDirname))
-            .then(() => fs.mkdirp(pngCacheDirname));
+            .then(() => fs.mkdirp(this._pdfCacheDir))
+            .then(() => fs.mkdirp(this._pngCacheDir));
         this.cacheDocumentPromise = this.initPromise.then(() => cacheDocument(this.metadata.pdf, this.cachedPdf, this.metadata.sha256));
         this.initDocumentPromise = this.cacheDocumentPromise.then(path => PDFJS.getDocument(path).promise);
         this.initPagePromises = this.initDocumentPromise.then(
