@@ -1,14 +1,12 @@
 (function () {
-    const remote = require('electron').remote;
-    const path = require('path');
-    const fromBaseDir = modulePath => path.join(remote.app.getAppPath(), modulePath);
+    const fromBaseDir = modulePath => require('path').join(require('electron').remote.app.getAppPath(), modulePath);
 
     // included with side effects to overwrite some globals
     require(fromBaseDir('src/js/renderer/polyfills.js'));
 
     // external imports
+    const remote = require('electron').remote;
     const _ = require('lodash');
-    const fs = require('fs-extra');
     const settings = require('electron-settings');
     const $ = jQuery = require("jquery-migrate"); // TODO: complete migration to jQuery v3 depends on bootbox support
     $.migrateTrace = false;
@@ -25,8 +23,11 @@
     const notify = require(fromBaseDir('src/js/renderer/notify.js'));
     const preprocessSnapshotList = require(fromBaseDir('src/js/renderer/preprocessSnapshotList.js'));
     const packageJson = require(fromBaseDir('package.json'));
+    const migrateOldSettings = require(fromBaseDir('src/js/renderer/migrateOldSettings.js'));
+    const utils = require(fromBaseDir('src/js/renderer/utils.js'));
 
     // initialization
+    migrateOldSettings();
     const miscConfig = settings.getAll();
     let snapshots; // to be initialized after preprocessing the SNAPSHOT list
 
@@ -34,24 +35,6 @@
     snapshotMailer.testConnection()
         .then(() => notify.success('Mail server is ready to take messages', ""))
         .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
-
-    const userDataDir = remote.app.getPath("userData");
-    const cacheDir = path.join(path.dirname(require('cachedir')('dummy')), remote.app.getName());
-    fs.mkdirpSync(cacheDir);
-    console.log(cacheDir);
-    const pdfCacheDirname = path.join(cacheDir, "pdf");
-    const pngCacheDirname = path.join(cacheDir, "png");
-    {
-        // migrate old caches of PDF and PNG files to new location
-        const oldPdfCacheDirname = path.join(userDataDir, "pdfCache");
-        if (!fs.existsSync(pdfCacheDirname) && fs.existsSync(oldPdfCacheDirname))
-            fs.renameSync(oldPdfCacheDirname, pdfCacheDirname);
-        const oldPngCacheDirname = path.join(userDataDir, "pngCache");
-        if (!fs.existsSync(pngCacheDirname) && fs.existsSync(oldPngCacheDirname))
-            fs.renameSync(oldPngCacheDirname, pngCacheDirname);
-    }
-    fs.mkdirpSync(pdfCacheDirname);
-    fs.mkdirpSync(pngCacheDirname);
 
     let swiper;
     let nestedSwipers = [];
@@ -398,7 +381,7 @@
             const startTime = performance.now();
             const articles = preprocessSnapshotList(miscConfig.snapshots);
             snapshots = articles.map(article => new Snapshot(article, {
-                cacheDir: cacheDir,
+                cacheDir: utils.getPath('cache'),
                 defaultWidth: 717,
                 defaultHeight: 1014
             }));
