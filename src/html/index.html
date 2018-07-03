@@ -26,6 +26,7 @@
         window.settings = require('electron-settings');
         var miscConfig = settings.getAll();
         var articles = _.cloneDeep(miscConfig.snapshots.articles);
+        var snapshots; // to be initialized after rearrangement of SNAPSHOT list
         var mailConfig = miscConfig.mail;
         if (typeof mailConfig.text !== "undefined" && mailConfig.text !== null)
             mailConfig.text = mailConfig.text.join("\n");
@@ -46,9 +47,6 @@
         window.htmlToText = require('html-to-text');
         window.format = require('string-template');
 
-        window.PDFJS = require("pdfjs-dist");
-        window.PDFJS.GlobalWorkerOptions.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
-
         // create reusable transporter object using the default SMTP transport
         window.transporter = nodemailer.createTransport(mailConfig.smtp);
 
@@ -63,12 +61,6 @@
 
         window.fs = require('fs');
         window.fsExtra = require('fs-extra');
-        window.hashFiles = function(options) {
-            return new Promise((resolve, reject) => hashFiles._hashFilesNodeBack(options, (err, hash) => err ? reject(err) : resolve(hash)));
-        };
-        window.hashFiles._hashFilesNodeBack = require('hash-files');
-        window.childProcess = require('child_process');
-        var request = require('request');
         var hummus = require('hummus');
         var streamBuffers = require('stream-buffers');
         var printer = require('printer');
@@ -91,33 +83,11 @@
         fsExtra.mkdirpSync(pdfCacheDirname);
         fsExtra.mkdirpSync(pngCacheDirname);
 
-        function download(url, dest) {
-            return new Promise((resolve, reject) => {
-                console.log(`Downloading ${url} to ${dest}`);
-                var file = fs.createWriteStream(dest);
-                var sendReq = request.get(url);
+        function fromBaseDir(modulePath) {
+            return path.join(remote.app.getAppPath(), modulePath);
+        }
 
-                // verify response code
-                sendReq.on('response', response => {
-                    if (response.statusCode !== 200)
-                        reject(response.statusCode);
-                });
-
-                // check for request errors
-                sendReq.on('error', err => {
-                    fs.unlink(dest);
-                    reject(err);
-                }); // Delete the file async. (But we don't check the result)
-
-                sendReq.pipe(file);
-
-                file.on('finish', () => file.close(() => resolve(dest))); // close() is async, call resolve after close completes.
-                file.on('error', err => {
-                    fs.unlink(dest);
-                    reject(err);
-                }); // Delete the file async. (But we don't check the result)
-            });
-        };
+        const SNAPSHOT = require(fromBaseDir('src/js/renderer/SNAPSHOT.js'));
 
         function createPDF2On1(infile, outfileOrStream, pagesNumbers) {
             console.log(`Creating 2-on-1 version of ${infile} at ${outfileOrStream}`);
@@ -413,33 +383,6 @@
             }
         }
 
-        function fileExists(filePath) {
-            try {
-                return fs.statSync(filePath).isFile();
-            } catch (err) {
-                return false;
-            }
-        }
-
-        function initCache(which) {
-            var article = articles[which];
-            article.cachedPdf = path.join(pdfCacheDirname, `${article.sha256}.pdf`);
-            var hashOptions = {
-                files: [article.cachedPdf],
-                algorithm: 'sha256'
-            };
-            return hashFiles(hashOptions).then(sha256 => {
-                if (sha256 == article.sha256) {
-                    return Promise.resolve(which);
-                } else {
-                    console.log("sha256 does not match for", article, "trying to download the file (again)");
-                    return download(article.pdf, article.cachedPdf).then(() => {
-                        return hashFiles(hashOptions).then(newSha256 => newSha256 == article.sha256 ? Promise.resolve(which) : Promise.reject(new Error(`unable to cache ${article.pdf} at ${article.cachedPdf}`)));
-                    });
-                }
-            });
-        }
-
         function initTopLevelSlides() {
             for (var i = 0; i < articles.length; ++i) {
                 const slide = document.createElement("DIV");
@@ -480,78 +423,28 @@
             }
         }
 
-        function initNestedSlides(which) {
-            var nestedSwiper = nestedSwipers[which];
-            var promises = [];
-            for (var pageNum = 1; pageNum <= documents[which].numPages; ++pageNum) {
+        async function initNestedSlides(nestedSwiper, snapshot) {
+            nestedSwiper.update(true);
+            const numPages = (await snapshot.initDocumentPromise).numPages;
+            const promises = new Array(numPages);
+            for (var pageNum = 0; pageNum < numPages; ++pageNum) {
                 const loader = document.createElement("div");
                 loader.classList.add("loader");
+                const image = document.createElement("img");
+                promises[pageNum] = snapshot
+                    .getPageRenderingPath(pageNum, nestedSwiper.width, nestedSwiper.height)
+                    .then(path => image.src = path)
+                    .then(() => loader.remove());
                 const div = document.createElement("div");
+                div.appendChild(image);
                 div.appendChild(loader);
                 div.classList.add("swiper-slide");
                 div.classList.add("swiper-slide-v");
-                div.style.height = `${nestedSwiper.width}px`;
 
                 nestedSwiper.appendSlide(div);
-
-                const thisPageNum = pageNum;
-                articles[which].cachedPng = new Array(documents[which].numPages);
-                var pdfBasename = path.basename(articles[which].pdf, ".pdf");
-                var pagePromise = documents[which].getPage(thisPageNum).then(page => {
-                    updateProgressBar("#progressPages", {
-                        now: 1,
-                        offset: true
-                    });
-
-                    var viewport = page.getViewport(1);
-                    var scale = nestedSwiper.width / viewport.width;
-                    var scaledViewport = page.getViewport(scale);
-                    scaledViewport.width = Math.floor(scaledViewport.width);
-                    scaledViewport.height = Math.floor(scaledViewport.height);
-
-                    // fix dimensions of slide
-                    div.style.width = `${scaledViewport.width}px`;
-                    div.style.height = `${scaledViewport.height}px`;
-                    nestedSwiper.update(true);
-
-                    // determine filename of PNG image cache
-                    var cachedPng = path.join(pngCacheDirname, `${pdfBasename}.${thisPageNum}.${scaledViewport.width}x${scaledViewport.height}.png`);
-                    articles[which].cachedPng[thisPageNum - 1] = cachedPng;
-
-                    // create PNG cache image if it's not already there
-                    var cachePromise;
-                    if (fileExists(cachedPng))
-                        cachePromise = Promise.resolve();
-                    else {
-                        const canvas = document.createElement("CANVAS");
-                        canvas.style.transform = 'translateZ(0)';
-                        canvas.width = scaledViewport.width;
-                        canvas.height = scaledViewport.height;
-
-                        var context = canvas.getContext("2d", {
-                            alpha: false
-                        });
-                        var renderContext = {
-                            canvasContext: context,
-                            viewport: scaledViewport
-                        };
-
-                        cachePromise = page.render(renderContext).then(() => {
-                            var pngDataBase64 = canvas.toDataURL().substr("data:image/png;base64,".length);
-                            var pngBuffer = Buffer.from(pngDataBase64, "base64");
-                            return new Promise((resolve, reject) => {
-                                fs.writeFile(cachedPng, pngBuffer, err => err ? reject(err) : resolve());
-                            });
-                        });
-                    }
-                    return cachePromise.then(() => updateProgressBar("#progressRendered", {
-                        now: 1,
-                        offset: true
-                    }));
-                });
-                promises.push(pagePromise);
             }
-            return Promise.all(promises);
+            nestedSwiper.update(true);
+            await Promise.all(promises);
         }
 
         var initComplete = false;
@@ -561,36 +454,20 @@
             var triggerAgain = false;
             var callback = function() {
                 if (lastActiveIndex != swiper.activeIndex && initComplete) {
-                    console.log("reassigning slides");
-                    $(swiper.slides).css("visibility", "hidden");
-                    var imagesToRemove = $(swiper.slides).find("img");
-                    var imagesAdded = 0;
-                    for (var i = swiper.activeIndex - 3; i <= swiper.activeIndex + 3; i++) {
-                        const slide = swiper.slides[i % swiper.slides.length];
-                        slide.style.visibility = "visible";
+                    const rearrangement = {};
+                    for (var i = swiper.activeIndex - 5; i <= swiper.activeIndex + 5; i++) {
+                        const slide = swiper.slides[i];
+                        if(typeof slide === 'undefined')
+                            continue; // index out of range -> skip this one
+
                         const tlSlideIndex = slide.getAttribute("data-swiper-slide-index");
                         const nestedSwiper = nestedSwipers[tlSlideIndex].el;
 
-                        nestedSwipers[tlSlideIndex].slides.each((j, nestedSlide) => {
-                            var image = $(nestedSlide).find("img");
-                            if (image.length == 0) {
-                                ++imagesAdded;
-                                image = new Image();
-                                image.onload = () => {
-                                    while (nestedSlide.firstChild)
-                                        nestedSlide.removeChild(nestedSlide.firstChild);
-                                    nestedSlide.appendChild(image);
-                                };
-                                image.src = articles[tlSlideIndex].cachedPng[j];
-                            }
-                            imagesToRemove = imagesToRemove.not(image);
-                        });
-
-                        slide.getElementsByClassName("slide-wrapper")[0].appendChild(nestedSwiper);
-                        console.log(slide.getAttribute("data-swiper-slide-index") + " -> " + i % swiper.slides.length);
+                        slide.querySelector(".slide-wrapper").appendChild(nestedSwiper);
+                        rearrangement[tlSlideIndex] = i;
                     }
-                    imagesToRemove.remove();
-                    console.log(`${imagesAdded} images added, ${imagesToRemove.length} removed`);
+                    console.log("reassigned slides:", rearrangement);
+
                     lastActiveIndex = swiper.activeIndex;
                 }
                 if (triggerAgain)
@@ -651,17 +528,6 @@
                 nestedSwipers.push(new Swiper(this, nestedSwiperConfig));
             });
             $(swiper.slides).filter('.swiper-slide-duplicate').find('.swiper-container').remove();
-        }
-
-        var documents = new Array(articles.length);
-        var totalNumPages = 0;
-
-        function initDocument(which) {
-            return PDFJS.getDocument(articles[which].cachedPdf).promise.then(function(pdf) {
-                documents[which] = pdf;
-                totalNumPages += pdf.numPages;
-                return which;
-            });
         }
 
         function disableSnapshot(index) {
@@ -960,52 +826,82 @@
                 var initDocumentPromises = [];
                 var initNestedSlidesPromises = [];
                 var initCompletePromises = [];
-                articles.forEach((article, which, a) => {
-                    var cachePromise = initCache(which).catch(e => {
+                snapshots = articles.map(article => new SNAPSHOT(article,{
+                        cacheDir: cacheDir,
+                        defaultWidth: 717,
+                        defaultHeight: 1014
+                    }));
+                let totalNumPages = 0;
+                snapshots.forEach( (snapshot, which) => {
+                    let article = snapshot.metadata;
+
+                    let cachePromise = snapshot.cacheDocumentPromise.catch(e => {
                         notifyError("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
                     });
-                    var initDocumentPromise = cachePromise.then(() => initDocument(which).catch(e => {
+                    let initDocumentPromise = snapshot.initDocumentPromise.catch(e => {
                         notifyError("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
-                    }));
-                    var initNestedSlidesPromise = initDocumentPromise.then(() => initNestedSlides(which).catchThrow(e => {
+                    });
+                    let cachePagePromises = snapshot.cachePagePromises.catch(e => {
                         notifyError("Initialization error",
                             `Failed to render pages of "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
-                    }));
+                    });
 
                     cachePromise.finally(() => updateProgressBar("#progressCache", {
                         now: 1,
                         offset: true
                     }));
-                    initNestedSlidesPromise.finally(() => {
+                    cachePagePromises.finally(() =>
                         updateProgressBar("#progressDocs", {
                             now: 1,
                             offset: true
-                        });
+                        })
+                    );
+
+                    initDocumentPromise = initDocumentPromise.then( document => {
+                        totalNumPages += document.numPages;
                         updateProgressBar("#progressPages", {
                             max: totalNumPages
                         });
                         updateProgressBar("#progressRendered", {
                             max: totalNumPages
                         });
+                        return document;
                     });
 
-                    var initCompletePromise = initNestedSlidesPromise.catch(e => {
-                        disableSnapshot(which);
-                        console.log("Problem processing snapshot", article, e);
-                    });
+                    let initCompletePromise = cachePagePromises
+                        .catch(e => {
+                            disableSnapshot(which);
+                            console.log("Problem processing snapshot", snapshot.metadata, e);
+                        })
+                        .then(actualCachePagePromises => Promise.all(actualCachePagePromises));
+
+                    initDocumentPromise = initDocumentPromise.then(
+                        document => { initNestedSlides(nestedSwipers[which],snapshot); return document; }
+                    );
+
+                    snapshot.initPagePromises.then( promises => promises.forEach( promise => promise.then(
+                        () => updateProgressBar("#progressPages", {
+                            now: 1,
+                            offset: true
+                        }))));
+
+                    snapshot.cachePagePromises.then( promises => promises.forEach( promise => promise.then(
+                        () => updateProgressBar("#progressRendered", {
+                            now: 1,
+                            offset: true
+                        }))));
 
                     cachePDFPromises.push(cachePromise);
                     initDocumentPromises.push(initDocumentPromise);
-                    initNestedSlidesPromises.push(initNestedSlidesPromise);
+                    initNestedSlidesPromises.push(cachePagePromises);
                     initCompletePromises.push(initCompletePromise);
                 });
 
                 Promise.all(initNestedSlidesPromises).catch(() => notifyWarning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
                 Promise.all(initCompletePromises)
-                    .delay(1000)
                     .then(() => initNotification.close())
                     .then(() => {
                         initComplete = true;
