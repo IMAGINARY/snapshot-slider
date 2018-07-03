@@ -61,9 +61,6 @@
 
         window.fs = require('fs');
         window.fsExtra = require('fs-extra');
-        var hummus = require('hummus');
-        var streamBuffers = require('stream-buffers');
-        var printer = require('printer');
 
         const userDataDir = remote.app.getPath("userData");
         const cacheDir = path.join(path.dirname(require('cachedir')('dummy')),remote.app.getName());
@@ -88,63 +85,7 @@
         }
 
         const SNAPSHOT = require(fromBaseDir('src/js/renderer/SNAPSHOT.js'));
-
-        function createPDF2On1(infile, outfileOrStream, pagesNumbers) {
-            console.log(`Creating 2-on-1 version of ${infile} at ${outfileOrStream}`);
-            if (typeof outfileOrStream !== 'string')
-                outfileOrStream = new hummus.PDFStreamForResponse(outfileOrStream);
-            var pdfWriter = hummus.createWriter(outfileOrStream, {
-                version: eval("hummus.ePDFVersion" + hummus.createReader(infile).getPDFLevel() * 10)
-            });
-            var copyingContext = pdfWriter.createPDFCopyingContext(infile);
-            var numPages = copyingContext.getSourceDocumentParser().getPagesCount();
-            var pagesNumbers = (typeof pagesNumbers !== 'undefined') ? pagesNumbers : Array.from(Array(numPages), (_, i) => i);
-
-            for (var i = 0; i < pagesNumbers.length;) {
-                var page = pdfWriter.createPage(0, 0, 842, 595);
-                var pageContent = pdfWriter.startPageContentContext(page);
-
-                if (pagesNumbers[i] >= 0) {
-                    pageContent.q().cm(1, 0, 0, 1, 0, 0);
-                    copyingContext.mergePDFPageToPage(page, pagesNumbers[i]);
-                    pageContent.Q();
-                }
-                ++i;
-                if (i < pagesNumbers.length && pagesNumbers[i] >= 0) {
-                    pageContent.q().cm(1, 0, 0, 1, 421, 0);
-                    copyingContext.mergePDFPageToPage(page, pagesNumbers[i]);
-                    pageContent.Q();
-                }
-                ++i;
-
-                pdfWriter.writePage(page);
-            }
-
-            pdfWriter.end();
-        }
-
-        function createPDFBooklet(infile, outfileOrStream, shiftLastPageToBackCover = true) {
-            console.log(`Creating booklet version of ${infile} at ${outfileOrStream}`);
-            var numPages = hummus.createReader(infile).getPagesCount();
-            var numBookletPages = Math.ceil(numPages / 4) * 4;
-
-            // compute bookelt page numbers
-            var pageNumbers = Array(0);
-            var segment = [numBookletPages - 1, 0, 1, numBookletPages - 2];
-            for (var i = 0; i < numBookletPages / 4; ++i) {
-                pageNumbers = pageNumbers.concat(segment);
-                segment = [segment[0] - 2, segment[1] + 2, segment[2] + 2, segment[3] - 2];
-            }
-
-            // move last page of input to last page of booklet if required
-            if (shiftLastPageToBackCover) {
-                pageNumbers = pageNumbers.map(i => i >= numPages - 1 ? -1 : i);
-                pageNumbers[0] = numPages - 1;
-            } else {
-                pageNumbers = pageNumbers.map(i => i > numPages - 1 ? -1 : i);
-            }
-            createPDF2On1(infile, outfileOrStream, pageNumbers);
-        }
+        const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
     </script>
     <script src="libs/jqbtk.js"></script>
 </head>
@@ -409,7 +350,7 @@
                 if (isFrontPage || !miscConfig.print.enable)
                     buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
                 else
-                    buttonBar.append(`<a href="javascript:switchToPrintMode(${i});"><i class="fa fa-print" aria-hidden="true"></i></a>`);
+                    buttonBar.append(`<a href="javascript:switchToPrintMode(snapshots[${i}]);"><i class="fa fa-print" aria-hidden="true"></i></a>`);
 
                 // add QR code
                 var svgObject = $(qrImage.imageSync(articles[i].url_short, {
@@ -722,41 +663,21 @@
             $("#emailAddress").keyboard();
         }
 
-        function switchToPrintMode(which) {
+        function switchToPrintMode(snapshot) {
             mode = "print";
             bootbox.confirm({
                 title: 'Confirm printing',
-                message: `<p class="dialog">Do you want to print: <em>"<b>${articles[which].authors.map( a => a.trim() ).join(", ")}:</b> ${articles[which].title.trim()}"</em>?<p>`,
-                callback: function(result) {
-                    if (result) {
-                        print(which);
-                    }
+                message: `<p class="dialog">Do you want to print: <em>"<b>${snapshot.metadata.authors.map(a => a.trim()).join(", ")}:</b> ${snapshot.metadata.title.trim()}"</em>?<p>`,
+                callback: result => {
+                    if (result)
+                        print(snapshot);
                     switchToSlider();
                 }
             });
         }
 
-        function print(which) {
-            return new Promise((resolve, reject) => {
-                    console.log('printing ' + path.basename(articles[which].cachedPdf));
-                    streamBuffer = new streamBuffers.WritableStreamBuffer({
-                        initialSize: (1000 * 1024), // start at 100 kilobytes.
-                        incrementAmount: (100 * 1024) // grow by 10 kilobytes each time buffer overflows.
-                    });
-                    createPDFBooklet(articles[which].cachedPdf, streamBuffer);
-                    printer.printDirect({
-                        data: streamBuffer.getContents(),
-                        docname: path.basename(articles[which].cachedPdf),
-                        type: 'PDF',
-                        options: {
-                            landscape: true,
-                            PageSize: 'A4',
-                            Duplex: 'DuplexTumble'
-                        },
-                        success: resolve,
-                        error: reject
-                    });
-                })
+        function print(snapshot) {
+            return SnapshotPrinter.print(snapshot.cachedPdf)
                 .then(() => notifySuccess('File has been sent to the printer'))
                 .catch(error => notifyError('Print job failed', 'Please check the error message', error));
         }
