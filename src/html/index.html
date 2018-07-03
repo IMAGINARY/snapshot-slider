@@ -70,7 +70,7 @@
             return path.join(remote.app.getAppPath(), modulePath);
         }
 
-        const SNAPSHOT = require(fromBaseDir('src/js/renderer/SNAPSHOT.js'));
+        const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
         const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
         const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
 
@@ -693,7 +693,7 @@
                 var initDocumentPromises = [];
                 var initNestedSlidesPromises = [];
                 var initCompletePromises = [];
-                snapshots = articles.map(article => new SNAPSHOT(article,{
+                snapshots = articles.map(article => new Snapshot(article,{
                         cacheDir: cacheDir,
                         defaultWidth: 717,
                         defaultHeight: 1014

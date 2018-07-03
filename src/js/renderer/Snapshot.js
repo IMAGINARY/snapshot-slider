@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 const request = require('request');
 const PDFJS = require('pdfjs-dist');
 
-module.exports = class SNAPSHOT {
+module.exports = class Snapshot {
     constructor(metadata, options) {
         this.metadata = {
             title: metadata.title,
