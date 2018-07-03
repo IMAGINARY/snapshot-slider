@@ -30,13 +30,9 @@
         window.$ = window.jQuery = require("jquery-migrate");
         window.jQuery.migrateTrace = false;
 
-        require('bootstrap');
-        require('bootstrap-notify');
         window.bootbox = require('bootbox');
         window.Swiper = require("swiper");
         window.qrImage = require("qr-image");
-
-        window.format = require('string-template');
 
         window.fs = require('fs');
         window.fsExtra = require('fs-extra');
@@ -67,11 +63,12 @@
         const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
         const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
         const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
-
+        const notify = require(fromBaseDir('src/js/renderer/notify.js'));
+        
         const snapshotMailer = new SnapshotMailer(miscConfig.mail);
         snapshotMailer.testConnection()
-            .then(info => notifySuccess('Mail server is ready to take messages', ""))
-            .catch(error => notifyError('Connection to mail server failed', 'Please check the error message', error));
+            .then(info => notify.success('Mail server is ready to take messages', ""))
+            .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
     </script>
     <script src="libs/jqbtk.js"></script>
 </head>
@@ -85,149 +82,6 @@
             </div>
         </div>
     </div>
-
-    <template id="progressTemplate">
-        <div class="progress">
-            <span class="progressbar-back-text"></span>
-            <div id="progressCache" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%;" template="{0} of {1} documents cached">
-                <span class="progressbar-front-text"></span>
-            </div>
-        </div>
-        <div class="progress">
-            <span class="progressbar-back-text"></span>
-            <div id="progressDocs" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} documents initialized">
-                <span class="progressbar-front-text"></span>
-            </div>
-        </div>
-        <div class="progress">
-            <span class="progressbar-back-text"></span>
-            <div id="progressPages" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} pages loaded">
-                <span class="progressbar-front-text"></span>
-            </div>
-        </div>
-        <div class="progress">
-            <span class="progressbar-back-text"></span>
-            <div id="progressRendered" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="width:0%" template="{0} of {1} pages cached">
-                <span class="progressbar-front-text"></span>
-            </div>
-        </div>
-    </template>
-    <script>
-        var initNotification;
-
-        function initInitNotification() {
-            return new Promise((resolve, reject) => {
-                    initNotification = $.notify({
-                        icon: "fa fa-circle-o-notch fa-spin fa-fw",
-                        title: "Initializing …",
-                        message: '<div id="progress"></div>'
-                    }, {
-                        placement: {
-                            from: "bottom",
-                            align: "right"
-                        },
-                        animate: {
-                            enter: 'animated fadeInRight',
-                            exit: 'animated fadeOutRight'
-                        },
-                        delay: 0,
-                        onShow: resolve,
-                        allow_dismiss: false
-                    })
-                })
-                .then(() => $("#progress").append($("#progressTemplate")[0].content.children))
-                .then(() => ["#progressCache", "#progressDocs", "#progressPages", "#progressRendered"].forEach(e => updateProgressBar(e)));
-        }
-
-        function updateProgressBar(progressBar, data) {
-            $progressBar = $(progressBar);
-
-            if (typeof data === "object" || typeof data === "function") {
-                ["min", "max", "now"].forEach((e, i, a) => {
-                    if (data.hasOwnProperty(e)) {
-                        if (data.offset === true)
-                            increaseAttr($progressBar, `aria-value${e}`, data[e]);
-                        else
-                            $progressBar.attr(`aria-value${e}`, data[e]);
-                    }
-                });
-            }
-
-            var min = $progressBar.attr("aria-valuemin");
-            var max = $progressBar.attr("aria-valuemax");
-            var now = $progressBar.attr("aria-valuenow");
-            var percentage = 100 * (now - min) / (max - min);
-            $progressBar.css("width", `${percentage}%`);
-
-            $frontText = $progressBar.find(".progressbar-front-text");
-            $frontText.css("width", $progressBar.parent().css("width"));
-            $frontText.text(format($progressBar.attr("template"), now, max));
-            $backText = $progressBar.parent().find(".progressbar-back-text");
-            $backText.text(format($progressBar.attr("template"), now, max));
-        }
-
-        function increaseAttr(selector, attr, amount) {
-            $(selector).attr(attr, parseInt($(selector).attr(attr), 10) + amount);
-        }
-
-        var _openNotifications = {};
-        function _notify(icon, title, message, details, type) {
-            this.id = typeof this.id === "undefined" ? this.id = 0 : this.id + 1;
-            var currId = this.id;
-
-            console.log({
-                id: this.id,
-                type: type,
-                title: title,
-                message: message,
-                details: details
-            });
-
-            var detailsHTML = ""
-            if (!(typeof details === "undefined")) {
-                if (details instanceof Error)
-                    details = details.stack;
-                else if (details instanceof Object)
-                    details = JSON.stringify(details, null, 2);
-
-                detailsHTML =
-                    `
-                    <i class="fa fa-caret-down" aria-hidden="true" onClick="$('#collapsibleDetails${currId}').on('shown.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('show');$(this).css('display','none');$(this).next().css('display','');"></i>
-                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="$('#collapsibleDetails${currId}').on('hidden.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('hide');$(this).css('display','none');$(this).prev().css('display','');"></i>
-                    <div id="collapsibleDetails${currId}" class="collapse">
-                        <pre class="notifyDetails">${details}</pre>
-                    </div>
-                `;
-            }
-
-            return new Promise((resolve, reject) => _openNotifications[currId] = $.notify({
-                icon: icon,
-                title: title,
-                message: typeof message === 'undefined' ? "" : message + detailsHTML
-            }, {
-                type: type,
-                placement: {
-                    from: "bottom",
-                    align: "right"
-                },
-                animate: {
-                    enter: 'animated fadeInRight',
-                    exit: 'animated fadeOutRight'
-                },
-                onClosed: () => {
-                    delete _openNotifications[currId];
-                    resolve();
-                },
-                delay: 4000,
-                mouse_over: 'pause'
-            }));
-        }
-
-        var notifySuccess = (title, message, details) => _notify("fa fa-check-square", title, message, details, "success");
-        var notifyInfo = (title, message, details) => _notify("fa fa-info-circle", title, message, details, "info");
-        var notifyWarning = (title, message, details) => _notify("fa fa-exclamation-triangle", title, message, details, "warning");
-        var notifyError = (title, message, details) => _notify("fa fa-exclamation-circle", title, message, details, "danger");
-    </script>
 
     <script>
         var swiper;
@@ -277,7 +131,7 @@
         };
 
         function about() {
-            notifyInfo(
+            notify.info(
                 `About ${packageJson.productName}`,
                 `License: ${packageJson.license}<br/>Version: ${packageJson.version}`,
                 process.versions
@@ -532,8 +386,8 @@
                         const recipientName = $('#emailName').val().trim();
                         const recipientAddress = $('#emailAddress').val().trim();
                         snapshotMailer.send(snapshot.metadata, recipientAddress, recipientName === '' ? undefined : recipientName)
-                            .then(info => notifySuccess('Email sent successfully', "", info))
-                            .catch(error => notifyError('Email could not be sent', 'Please check the error message', error));
+                            .then(info => notify.success('Email sent successfully', "", info))
+                            .catch(error => notify.error('Email could not be sent', 'Please check the error message', error));
                     }
                     switchToSlider();
                 }
@@ -557,8 +411,8 @@
 
         function print(snapshot) {
             return SnapshotPrinter.print(snapshot.cachedPdf)
-                .then(() => notifySuccess('File has been sent to the printer'))
-                .catch(error => notifyError('Print job failed', 'Please check the error message', error));
+                .then(() => notify.success('File has been sent to the printer'))
+                .catch(error => notify.error('Print job failed', 'Please check the error message', error));
         }
 
 
@@ -569,25 +423,24 @@
             try {
                 const newSnapshotList = await SnapshotListUpdater.update(miscConfig.snapshots.autoUpdate.url);
                 if (_.isEqual(newSnapshotList.snapshots, miscConfig.snapshots.articles)) {
-                    notifySuccess(successNotificationTitle, "No change detected.", newSnapshotList);
+                    notify.success(successNotificationTitle, "No change detected.", newSnapshotList);
                 } else {
                     settings.set("snapshots.articles", newSnapshotList.snapshots, {
                         prettify: true
                     });
-                    notifySuccess(successNotificationTitle, "Reloading …", newSnapshotList)
+                    notify.success(successNotificationTitle, "Reloading …", newSnapshotList)
                         .then(() => location.reload());
                 }
-
             } catch( error ) {
                 switch( error.errorCode ) {
                     case SnapshotListUpdater.UpdateError.ERROR_DOWNLOAD_FAILED:
-                        notifyError(errorNotificationTitle, "The list could not be downloaded.", error.cause);
+                        notify.error(errorNotificationTitle, "The list could not be downloaded.", error.cause);
                         break;
                     case SnapshotListUpdater.UpdateError.ERROR_VERSION_MISMATCH:
-                        notifyError(errorNotificationTitle, "Online data has wrong version tag.", error.cause);
+                        notify.error(errorNotificationTitle, "Online data has wrong version tag.", error.cause);
                         break;
                     case SnapshotListUpdater.UpdateError.ERROR_VALIDATION_FAILED:
-                        notifyError(errorNotificationTitle, "The downloaded list is invalid.", error.cause);
+                        notify.error(errorNotificationTitle, "The downloaded list is invalid.", error.cause);
                         break;
                 }
             }
@@ -596,17 +449,16 @@
         // GO!
         new Promise((resolve, reject) => $(document).ready(resolve))
             .then(miscConfig.snapshots.autoUpdate.enable ? () => {
-                notifyInfo("Starting update of SNAPSHOT list");
+                notify.info("Starting update of SNAPSHOT list");
                 return updateSnapshotList().reflect();
             } : Promise.resolve())
-            .then(initInitNotification)
             .then(() => {
                 var startTime = performance.now()
                 rearrangeConfig();
-                updateProgressBar("#progressCache", {
+                notify.updateInitProgressBar("#progressCache", {
                     max: articles.length
                 });
-                updateProgressBar("#progressDocs", {
+                notify.updateInitProgressBar("#progressDocs", {
                     max: articles.length
                 });
                 initTopLevelSlides();
@@ -625,25 +477,25 @@
                     let article = snapshot.metadata;
 
                     let cachePromise = snapshot.cacheDocumentPromise.catch(e => {
-                        notifyError("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                        notify.error("Initialization error", `Could not cache "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
                     });
                     let initDocumentPromise = snapshot.initDocumentPromise.catch(e => {
-                        notifyError("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
+                        notify.error("Initialization error", `Failed to load "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
                     });
                     let cachePagePromises = snapshot.cachePagePromises.catch(e => {
-                        notifyError("Initialization error",
+                        notify.error("Initialization error",
                             `Failed to render pages of "${article.authors.join(", ")}: ${article.title}" (doi: ${article.doi})`, e);
                         throw e;
                     });
 
-                    cachePromise.finally(() => updateProgressBar("#progressCache", {
+                    cachePromise.finally(() => notify.updateInitProgressBar("#progressCache", {
                         now: 1,
                         offset: true
                     }));
                     cachePagePromises.finally(() =>
-                        updateProgressBar("#progressDocs", {
+                        notify.updateInitProgressBar("#progressDocs", {
                             now: 1,
                             offset: true
                         })
@@ -651,10 +503,10 @@
 
                     initDocumentPromise = initDocumentPromise.then( document => {
                         totalNumPages += document.numPages;
-                        updateProgressBar("#progressPages", {
+                        notify.updateInitProgressBar("#progressPages", {
                             max: totalNumPages
                         });
-                        updateProgressBar("#progressRendered", {
+                        notify.updateInitProgressBar("#progressRendered", {
                             max: totalNumPages
                         });
                         return document;
@@ -671,14 +523,14 @@
                         document => { initNestedSlides(nestedSwipers[which],snapshot); return document; }
                     );
 
-                    snapshot.initPagePromises.then( promises => promises.forEach( promise => promise.then(
-                        () => updateProgressBar("#progressPages", {
+                    snapshot.initPagePromises.then( promises => promises.forEach( promise => promise.finally(
+                        () => notify.updateInitProgressBar("#progressPages", {
                             now: 1,
                             offset: true
                         }))));
 
-                    snapshot.cachePagePromises.then( promises => promises.forEach( promise => promise.then(
-                        () => updateProgressBar("#progressRendered", {
+                    snapshot.cachePagePromises.then( promises => promises.forEach( promise => promise.finally(
+                        () => notify.updateInitProgressBar("#progressRendered", {
                             now: 1,
                             offset: true
                         }))));
@@ -689,9 +541,9 @@
                     initCompletePromises.push(initCompletePromise);
                 });
 
-                Promise.all(initNestedSlidesPromises).catch(() => notifyWarning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
+                Promise.all(initNestedSlidesPromises).catch(() => notify.warning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
                 Promise.all(initCompletePromises)
-                    .then(() => initNotification.close())
+                    .then(notify.closeInitProgressBar)
                     .then(() => {
                         initComplete = true;
                         window.requestAnimationFrame(swiper.params.slideReassignCallback);
