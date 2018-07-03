@@ -11,11 +11,12 @@ module.exports = class Snapshot {
         this.metadata = {
             title: metadata.title,
             url: metadata.url,
-            short_url: metadata.short_url,
+            url_short: metadata.url_short,
             pdf: metadata.pdf,
             sha256: metadata.sha256,
             authors: metadata.authors,
             doi: metadata.doi,
+            isFrontPage: metadata.isFrontPage,
         }
 
         this._cacheDir = options.cacheDir;

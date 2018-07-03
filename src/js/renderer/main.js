@@ -5,8 +5,7 @@ window.path = require('path');
 var packageJson = require(path.join(remote.app.getAppPath(),'package.json'));
 window.settings = require('electron-settings');
 var miscConfig = settings.getAll();
-var articles = _.cloneDeep(miscConfig.snapshots.articles);
-var snapshots; // to be initialized after rearrangement of SNAPSHOT list
+var snapshots; // to be initialized after preprocessing the SNAPSHOT list
 
 // TODO: complete migration to jQuery v3 depends on bootbox support
 window.$ = window.jQuery = require("jquery-migrate");
@@ -46,6 +45,7 @@ const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'
 const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
 const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
 const notify = require(fromBaseDir('src/js/renderer/notify.js'));
+const preprocessSnapshotList = require(fromBaseDir('src/js/renderer/preprocessSnapshotList.js'));
 
 const snapshotMailer = new SnapshotMailer(miscConfig.mail);
 snapshotMailer.testConnection()
@@ -55,7 +55,6 @@ snapshotMailer.testConnection()
 require(fromBaseDir('libs/jqbtk.js'));
 
 var swiper;
-var swiperInitialSlide;
 var nestedSwipers = [];
 
 if (miscConfig.hideCursor) {
@@ -108,34 +107,8 @@ function about() {
     );
 }
 
-function rearrangeConfig() {
-    if (miscConfig.snapshots.sort.enable) {
-        var sortConfig = miscConfig.snapshots.sort;
-        if (typeof sortConfig.by !== "undefined" && sortConfig.by != null)
-            sortConfig.compareFunction = `(a,b) => a.${sortConfig.by}.localeCompare(b.${sortConfig.by})`;
-        articles = articles.sort(eval(sortConfig.compareFunction));
-    }
-
-    if (miscConfig.snapshots.filter.enable)
-        articles = articles.filter(eval(miscConfig.snapshots.filter.filterFunction));
-
-    // reverse order such that oldest items come first
-    articles.reverse();
-
-    // put overview page to the beginning
-    var frontPage = settings.get("snapshots.frontPage");
-    frontPage.isFrontPage = true;
-    articles.unshift(frontPage);
-
-    // move ~half of the slides from the end to the beginning
-    for (swiperInitialSlide = 0; swiperInitialSlide < Math.floor(articles.length / 2); ++swiperInitialSlide) {
-        var elem = articles.pop();
-        articles.unshift(elem);
-    }
-}
-
 function initTopLevelSlides() {
-    for (var i = 0; i < articles.length; ++i) {
+    for (var i = 0; i < snapshots.length; ++i) {
         const slide = document.createElement("DIV");
         slide.classList.add("swiper-slide");
         slide.classList.add("swiper-slide-h");
@@ -147,8 +120,6 @@ function initTopLevelSlides() {
 
         const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
 
-        const isFrontPage = typeof articles[i].isFrontPage != 'undefined' && articles[i].isFrontPage == true;
-
         $slide_wrapper.append(verticalSwiper);
         const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
 
@@ -157,19 +128,19 @@ function initTopLevelSlides() {
         else
             buttonBar.append(`<a href="javascript:switchToMailMode(snapshots[${i}]);"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
 
-        if (isFrontPage || !miscConfig.print.enable)
+        if (snapshots[i].metadata.isFrontPage || !miscConfig.print.enable)
             buttonBar.append(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
         else
             buttonBar.append(`<a href="javascript:switchToPrintMode(snapshots[${i}]);"><i class="fa fa-print" aria-hidden="true"></i></a>`);
 
         // add QR code
-        var svgObject = $(qrImage.imageSync(articles[i].url_short, {
+        var svgObject = $(qrImage.imageSync(snapshots[i].metadata.url_short, {
             type: 'svg',
             size: 2
         }));
         svgObject.addClass("qrcode");
         $(`#button-bar-${i}`).append(svgObject);
-        if (isFrontPage)
+        if (snapshots[i].metadata.isFrontPage)
             $(`#button-bar-${i}`).addClass('overview');
     }
 }
@@ -233,9 +204,9 @@ function initSliders() {
         //mousewheelControl: true,
         //mousewheelForceToAxis: true,
         spaceBetween: 78,
-        initialSlide: swiperInitialSlide,
+        initialSlide: 0,
         loop: true,
-        loopedSlides: articles.length,
+        loopedSlides: snapshots.length,
         freeModeSticky: true,
         freeModeMomentumRatio: 0.25,
         centeredSlides: true,
@@ -321,8 +292,8 @@ function initIdleHandlers() {
 
 function idleAction() {
     bootbox.hideAll();
-    nestedSwipers[(swiper.realIndex + 1) % articles.length].slideTo(0, 0);
-    nestedSwipers[(swiper.realIndex + 2) % articles.length].slideTo(0, 0);
+    nestedSwipers[(swiper.realIndex + 1) % snapshots.length].slideTo(0, 0);
+    nestedSwipers[(swiper.realIndex + 2) % snapshots.length].slideTo(0, 0);
     swiper.slideNext(miscConfig.idleAnimationDurationMs,true);
 }
 
@@ -425,12 +396,17 @@ new Promise((resolve, reject) => $(document).ready(resolve))
     } : Promise.resolve())
     .then(() => {
         var startTime = performance.now()
-        rearrangeConfig();
+        const articles = preprocessSnapshotList(miscConfig.snapshots);
+        snapshots = articles.map(article => new Snapshot(article,{
+            cacheDir: cacheDir,
+            defaultWidth: 717,
+            defaultHeight: 1014
+        }));
         notify.updateInitProgressBar("#progressCache", {
-            max: articles.length
+            max: snapshots.length
         });
         notify.updateInitProgressBar("#progressDocs", {
-            max: articles.length
+            max: snapshots.length
         });
         initTopLevelSlides();
         initSliders();
@@ -438,11 +414,6 @@ new Promise((resolve, reject) => $(document).ready(resolve))
         var initDocumentPromises = [];
         var initNestedSlidesPromises = [];
         var initCompletePromises = [];
-        snapshots = articles.map(article => new Snapshot(article,{
-            cacheDir: cacheDir,
-            defaultWidth: 717,
-            defaultHeight: 1014
-        }));
         let totalNumPages = 0;
         snapshots.forEach( (snapshot, which) => {
             let article = snapshot.metadata;
