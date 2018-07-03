@@ -68,7 +68,7 @@ module.exports = class Snapshot {
             return await loadImage(filename);
         }
     }
-}
+};
 
 function sha256sum(path) {
     const options = {
