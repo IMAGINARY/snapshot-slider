@@ -50,7 +50,7 @@ module.exports = class Snapshot {
         PDFJS.GlobalWorkerOptions.workerSrc = 'node_modules/pdfjs-dist/build/pdf.worker.js';
     }
 
-    async getPageRenderingPath(pdfPageNum, width, height) {
+    async getPageRenderingPath(pdfPageNum, width = this._defaultWidth, height = this._defaultHeight) {
         let key = `${pdfPageNum}.${width}x${height}`;
         let filename = `${this._pngCachePrefix}.${key}.png`;
         if (!this._cachePagePromiseCache.hasOwnProperty(key)) {

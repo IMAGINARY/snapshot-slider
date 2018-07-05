@@ -267,3 +267,18 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/******/
+@keyframes nodeInserted {
+    from {
+        outline-color: #fff;
+    }
+    to {
+        outline-color: #000;
+    }
+}
+
+.node-inserted {
+    animation-duration: 0.01s;
+    animation-name: nodeInserted;
+}

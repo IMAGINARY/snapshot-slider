@@ -1,4 +1,5 @@
-(function () {
+// keep this global reference around to ease debugging
+var debugHook = (function () {
     const fromBaseDir = modulePath => require('path').join(require('electron').remote.app.getAppPath(), modulePath);
 
     // included with side effects to overwrite some globals
@@ -12,14 +13,13 @@
     $.migrateTrace = false;
     require(fromBaseDir('libs/jqbtk.js')); // extends jQuery, no further global side effects
     const bootbox = require('bootbox');
-    const Swiper = require("swiper");
-    const qrImage = require("qr-image");
 
     // project imports
     const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
     const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
     const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
     const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
+    const SliderInitializer = require(fromBaseDir('src/js/renderer/SliderInitializer.js'));
     const notify = require(fromBaseDir('src/js/renderer/notify.js'));
     const preprocessSnapshotList = require(fromBaseDir('src/js/renderer/preprocessSnapshotList.js'));
     const packageJson = require(fromBaseDir('package.json'));
@@ -36,9 +36,6 @@
         .then(() => notify.success('Mail server is ready to take messages', ""))
         .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
 
-    let swiper;
-    let nestedSwipers = [];
-    let initComplete = false;
     let mode;
 
     if (miscConfig.hideCursor) {
@@ -68,20 +65,22 @@
     };
     document.body.ondblclick();
 
-    document.onkeydown = e => {
-        if (mode === "slider") {
-            const actions = {
-                "i": about,
-                "ArrowLeft": () => swiper.slidePrev(), // left arrow
-                "ArrowRight": () => swiper.slideNext(), // right arrow
-                "ArrowDown": () => nestedSwipers[swiper.realIndex].slideNext(), // down arrow
-                "ArrowUp": () => nestedSwipers[swiper.realIndex].slidePrev() // up arrow
-            };
-            actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
-            if (typeof actions[e.key] !== 'undefined')
-                actions[e.key]();
-        }
-    };
+    function initKeyHandlers(swiper, slideContents) {
+        document.onkeydown = e => {
+            if (mode === "slider") {
+                const actions = {
+                    "i": about,
+                    "ArrowLeft": () => swiper.slidePrev(), // left arrow
+                    "ArrowRight": () => swiper.slideNext(), // right arrow
+                    "ArrowDown": () => slideContents[swiper.realIndex].nested.swiper.slideNext(), // down arrow
+                    "ArrowUp": () => slideContents[swiper.realIndex].nested.swiper.slidePrev() // up arrow
+                };
+                actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
+                if (typeof actions[e.key] !== 'undefined')
+                    actions[e.key]();
+            }
+        };
+    }
 
     function about() {
         notify.info(
@@ -91,159 +90,7 @@
         );
     }
 
-    function initTopLevelSlides() {
-        for (let i = 0; i < snapshots.length; ++i) {
-            const snapshot = snapshots[i];
-            const slide = document.createElement("DIV");
-            slide.classList.add("swiper-slide");
-            slide.classList.add("swiper-slide-h");
-            $("#slider").children(".swiper-wrapper").first().append(slide);
-            const $slide_wrapper = $('<div/>', {
-                class: 'slide-wrapper'
-            });
-            $(slide).append($slide_wrapper);
-
-            const verticalSwiper = $('<div class="swiper-container swiper-container-v" style="transform: translateZ(0);"><div class="swiper-wrapper"></div></div>');
-
-            $slide_wrapper.append(verticalSwiper);
-            const buttonBar = $slide_wrapper.append(`<div id="button-bar-${i}" class="button-bar"></div>`).children().last();
-
-            let mailButton;
-            if (!miscConfig.mail.enable) {
-                mailButton = $(`<i class="fa fa-envelope-o disabled" aria-hidden="true"></i>`);
-            } else {
-                mailButton = $(`<a href="javascript:"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>`);
-                mailButton.on('click', () => switchToMailMode(snapshot));
-            }
-            buttonBar.append(mailButton);
-
-            let printButton;
-            if (snapshots[i].metadata.isFrontPage || !miscConfig.print.enable) {
-                printButton = $(`<i class="fa fa-print disabled" aria-hidden="true"></i>`);
-            } else {
-                printButton = $(`<a href="javascript:"><i class="fa fa-print" aria-hidden="true"></i></a>`);
-                printButton.on('click', () => switchToPrintMode(snapshot));
-            }
-            buttonBar.append(printButton);
-
-            // add QR code
-            const svgObject = $(qrImage.imageSync(snapshots[i].metadata.url_short, {
-                type: 'svg',
-                size: 2
-            }));
-            svgObject.addClass("qrcode");
-            buttonBar.append(svgObject);
-            if (snapshots[i].metadata.isFrontPage)
-                buttonBar.addClass('overview');
-        }
-    }
-
-    async function initNestedSlides(nestedSwiper, snapshot) {
-        nestedSwiper.update(true);
-        const numPages = (await snapshot.initDocumentPromise).numPages;
-        const promises = new Array(numPages);
-        for (let pageNum = 0; pageNum < numPages; ++pageNum) {
-            const loader = document.createElement("div");
-            loader.classList.add("loader");
-            const image = document.createElement("img");
-            promises[pageNum] = snapshot
-                .getPageRenderingPath(pageNum, nestedSwiper.width, nestedSwiper.height)
-                .then(path => image.src = path)
-                .then(() => loader.remove());
-            const div = document.createElement("div");
-            div.appendChild(image);
-            div.appendChild(loader);
-            div.classList.add("swiper-slide");
-            div.classList.add("swiper-slide-v");
-
-            nestedSwiper.appendSlide(div);
-        }
-        nestedSwiper.update(true);
-        await Promise.all(promises);
-    }
-
-    function initSliders() {
-        let lastActiveIndex = -1;
-        let triggerAgain = false;
-        const callback = function () {
-            if (lastActiveIndex !== swiper.activeIndex && initComplete) {
-                const rearrangement = {};
-                for (let i = swiper.activeIndex - 5; i <= swiper.activeIndex + 5; i++) {
-                    const slide = swiper.slides[i];
-                    if (typeof slide === 'undefined')
-                        continue; // index out of range -> skip this one
-
-                    const tlSlideIndex = slide.getAttribute("data-swiper-slide-index");
-                    const nestedSwiper = nestedSwipers[tlSlideIndex].el;
-
-                    slide.querySelector(".slide-wrapper").appendChild(nestedSwiper);
-                    rearrangement[tlSlideIndex] = i;
-                }
-                console.log("reassigned slides:", rearrangement);
-
-                lastActiveIndex = swiper.activeIndex;
-            }
-            if (triggerAgain)
-                window.requestAnimationFrame(callback);
-        };
-
-        const swiperConfig = {
-            direction: 'horizontal',
-            slidesPerView: 3,
-            freeMode: true,
-            effect: 'coverflow',
-            //mousewheelControl: true,
-            //mousewheelForceToAxis: true,
-            spaceBetween: 78,
-            initialSlide: 0,
-            loop: true,
-            loopedSlides: snapshots.length,
-            freeModeSticky: true,
-            freeModeMomentumRatio: 0.25,
-            centeredSlides: true,
-            slideReassignCallback: callback,
-            on: {
-                slideChangeTransitionStart: () => {
-                    triggerAgain = true;
-                    window.requestAnimationFrame(callback);
-                },
-                slideChangeTransitionEnd: () => triggerAgain = false,
-                transitionStart: () => {
-                    triggerAgain = true;
-                    window.requestAnimationFrame(callback);
-                },
-                transitionEnd: () => triggerAgain = false,
-                sliderMove: () => window.requestAnimationFrame(callback),
-            }
-
-        };
-        swiper = new Swiper('#slider', swiperConfig);
-        for (let i = 0; i < swiper.slides.length; i++)
-            $(swiper.slides[i]).attr("data-swiper-fake-slide-index", i);
-
-        const nestedSwiperConfig = {
-            direction: 'vertical',
-            slidesPerView: 1,
-            spaceBetween: 4,
-            freeMode: true,
-            freeModeSticky: true,
-            mousewheelControl: true,
-            mousewheelForceToAxis: true,
-            controlBy: 'container'
-        };
-        $(swiper.slides).not('.swiper-slide-duplicate').find('.swiper-container').each(function () {
-            nestedSwipers.push(new Swiper(this, nestedSwiperConfig));
-        });
-        $(swiper.slides).filter('.swiper-slide-duplicate').find('.swiper-container').remove();
-    }
-
-    function disableSnapshot(index) {
-        // disable mail and print buttons
-        $(`#button-bar-${index} a > i`).unwrap();
-        $(`#button-bar-${index} i`).addClass("disabled");
-    }
-
-    function initIdleHandlers() {
+    function initIdleHandlers(idleAction) {
         let idle_timer = null;
         const init_idle_timer = delay => {
             if (idle_timer != null)
@@ -275,16 +122,18 @@
         init_idle_timer(miscConfig.idleModeDelayMs);
     }
 
-    function idleAction() {
-        bootbox.hideAll();
-        nestedSwipers[(swiper.realIndex + 1) % snapshots.length].slideTo(0, 0);
-        nestedSwipers[(swiper.realIndex + 2) % snapshots.length].slideTo(0, 0);
-        swiper.slideNext(miscConfig.idleAnimationDurationMs, true);
+    function createIdleAction(swiper, slideContents) {
+        return () => {
+            bootbox.hideAll();
+            slideContents[(swiper.realIndex + 1) % snapshots.length].nested.swiper.slideTo(0, 0);
+            slideContents[(swiper.realIndex + 2) % snapshots.length].nested.swiper.slideTo(0, 0);
+            swiper.slideNext(miscConfig.idleAnimationDurationMs, true);
+        }
     }
 
     function switchToSlider() {
+        bootbox.hideAll();
         mode = "slider";
-        $('#slider').show();
     }
 
     function switchToUpdateMode() {
@@ -371,13 +220,13 @@
         }
     }
 
-// GO!
+    // GO!
     new Promise(resolve => $(document).ready(resolve))
         .then(miscConfig.snapshots.autoUpdate.enable ? () => {
             notify.info("Starting update of SNAPSHOT list");
             return updateSnapshotList().reflect();
         } : Promise.resolve())
-        .then(() => {
+        .then(async () => {
             const startTime = performance.now();
             const articles = preprocessSnapshotList(miscConfig.snapshots);
             snapshots = articles.map(article => new Snapshot(article, {
@@ -391,14 +240,13 @@
             notify.updateInitProgressBar("#progressDocs", {
                 max: snapshots.length
             });
-            initTopLevelSlides();
-            initSliders();
+
             const cachePDFPromises = [];
             const initDocumentPromises = [];
             const initNestedSlidesPromises = [];
             const initCompletePromises = [];
             let totalNumPages = 0;
-            snapshots.forEach((snapshot, which) => {
+            snapshots.forEach(snapshot => {
                 let article = snapshot.metadata;
 
                 let cachePromise = snapshot.cacheDocumentPromise.catch(e => {
@@ -439,17 +287,9 @@
 
                 let initCompletePromise = cachePagePromises
                     .catch(e => {
-                        disableSnapshot(which);
                         console.log("Problem processing snapshot", snapshot.metadata, e);
                     })
                     .then(actualCachePagePromises => Promise.all(actualCachePagePromises));
-
-                initDocumentPromise = initDocumentPromise.then(
-                    document => {
-                        initNestedSlides(nestedSwipers[which], snapshot);
-                        return document;
-                    }
-                );
 
                 snapshot.initPagePromises.then(promises => promises.forEach(promise => promise.finally(
                     () => notify.updateInitProgressBar("#progressPages", {
@@ -469,16 +309,23 @@
                 initCompletePromises.push(initCompletePromise);
             });
 
+            // create the slider and add it to the DOM (final initialization is done upon insertion into the DOM)
+            const {swiper, slideContents} = await SliderInitializer.createTopLevelSlider(snapshots, {
+                onMail: miscConfig.mail.enable ? snapshot => switchToMailMode(snapshot) : undefined,
+                onPrint: miscConfig.print.enable ? snapshot => switchToPrintMode(snapshot) : undefined,
+            });
+            document.querySelector('#full-hd-centered').appendChild(swiper.el);
+
             Promise.all(initNestedSlidesPromises).catch(() => notify.warning("Initialization incomplete", "Some SNAPSHOTS will be unavailable."));
             Promise.all(initCompletePromises)
                 .then(notify.closeInitProgressBar)
                 .then(() => {
-                    initComplete = true;
-                    window.requestAnimationFrame(swiper.params.slideReassignCallback);
-                    //$('#progress').hide();
-                    initIdleHandlers();
+                    initIdleHandlers(createIdleAction(swiper, slideContents));
+                    initKeyHandlers(swiper, slideContents);
                     switchToSlider();
+
                     console.log(`loading took ${(performance.now() - startTime) / 1000.0}s`)
                 });
         });
+
 })();
