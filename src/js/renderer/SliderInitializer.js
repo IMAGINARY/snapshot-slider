@@ -200,3 +200,11 @@ function createNestedSlide(snapshot, pageNum) {
 
     return {slide: div, promise: promise};
 }
+
+async function loadImage(image, path) {
+    return new Promise((resolve, reject) => {
+        image.addEventListener('error', e => reject(e));
+        image.addEventListener('load', () => resolve(image));
+        image.src = path;
+    })
+}
