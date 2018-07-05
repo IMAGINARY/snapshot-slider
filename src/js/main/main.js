@@ -19,19 +19,16 @@ const path = require('path');
 
 function getLinuxIcon() {
     if(process.mainModule.filename.indexOf('app.asar') === -1)
-        return path.resolve(__dirname, 'build', 'icon48x48.png');
+        return path.resolve(app.getAppPath(), 'build', 'icon48x48.png');
     else
-        return path.resolve(__dirname, '..', 'icon48x48.png');
+        return path.resolve(app.getAppPath(), '..', 'icon48x48.png');
 }
 
 // Add default values to current settings file
 function addDefaultSettings(settings) {
-    const mergeJSON = require("merge-json");
-    const defaults = require("./defaults.json");
-    const withDefaultSettings = mergeJSON.merge(defaults, settings.getAll());
-    settings.setAll(withDefaultSettings, {
-        prettify: true
-    });
+    const _ = require('lodash');
+    const defaults = require("../../../defaults.json");
+    settings.setAll(_.merge(defaults, settings.getAll()), {prettify: true});
 }
 
 // Module to create native browser window.
@@ -108,7 +105,7 @@ function createWindow(settings) {
     }
 
     // and load the index.html of the app.
-    mainWindow.loadURL('file://' + __dirname + '/index.html');
+    mainWindow.loadURL('file://' + app.getAppPath() + '/src/html/index.html');
 
     // Open the DevTools.
     if (settings.get("devTools"))
@@ -144,6 +141,6 @@ app.on('activate', function() {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
-        createWindow();
+        createWindow(require("electron-settings"));
     }
 });
