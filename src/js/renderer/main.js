@@ -69,6 +69,7 @@ var debugHook = (function () {
     function initGlobalKeyHandlers() {
         const actions = {
             "i": about,
+            "c": switchToClearCacheMode,
             "r": () => window.location.reload(),
         };
         document.addEventListener('keydown', e => {
@@ -142,6 +143,27 @@ var debugHook = (function () {
 
     function switchToSlider() {
         mode = "slider";
+    }
+
+    function switchToClearCacheMode() {
+        mode = "clearCache";
+        bootbox.prompt({
+            title: "Please select the cache folders to be deleted",
+            value: "",
+            inputType: 'checkbox',
+            inputOptions: utils.cacheDirContents().map(entry => {
+                return {text: entry, value: entry}
+            }),
+            callback: result => {
+                if (result) {
+                    utils.clearCaches(result)
+                        .then(() => notify.success("Cache successfully wiped", "Reloading …"))
+                        .then(() => location.reload())
+                        .catch(error => notify.error("Could not wipe cache", "", error));
+                }
+                switchToSlider();
+            },
+        });
     }
 
     function switchToUpdateMode() {
