@@ -70,6 +70,7 @@ var debugHook = (function () {
             if (mode === "slider") {
                 const actions = {
                     "i": about,
+                    "r": () => window.location.reload(),
                     "ArrowLeft": () => swiper.slidePrev(), // left arrow
                     "ArrowRight": () => swiper.slideNext(), // right arrow
                     "ArrowDown": () => slideContents[swiper.realIndex].nested.swiper.slideNext(), // down arrow
