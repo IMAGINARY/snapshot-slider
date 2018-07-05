@@ -65,22 +65,29 @@ var debugHook = (function () {
     };
     document.body.ondblclick();
 
-    function initKeyHandlers(swiper, slideContents) {
-        document.onkeydown = e => {
-            if (mode === "slider") {
-                const actions = {
-                    "i": about,
-                    "r": () => window.location.reload(),
-                    "ArrowLeft": () => swiper.slidePrev(), // left arrow
-                    "ArrowRight": () => swiper.slideNext(), // right arrow
-                    "ArrowDown": () => slideContents[swiper.realIndex].nested.swiper.slideNext(), // down arrow
-                    "ArrowUp": () => slideContents[swiper.realIndex].nested.swiper.slidePrev() // up arrow
-                };
-                actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
-                if (typeof actions[e.key] !== 'undefined')
-                    actions[e.key]();
-            }
+    function initGlobalKeyHandlers() {
+        const actions = {
+            "i": about,
+            "r": () => window.location.reload(),
         };
+        document.addEventListener('keydown', e => {
+            if (typeof actions[e.key] !== 'undefined')
+                actions[e.key]();
+        });
+    }
+
+    function initSliderKeyHandlers(swiper, slideContents) {
+        const actions = {
+            "ArrowLeft": () => swiper.slidePrev(), // left arrow
+            "ArrowRight": () => swiper.slideNext(), // right arrow
+            "ArrowDown": () => slideContents[swiper.realIndex].nested.swiper.slideNext(), // down arrow
+            "ArrowUp": () => slideContents[swiper.realIndex].nested.swiper.slidePrev() // up arrow
+        };
+        actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
+        document.addEventListener('keydown', e => {
+            if (mode === 'slider' && typeof actions[e.key] !== 'undefined')
+                actions[e.key]();
+        });
     }
 
     function about() {
@@ -223,6 +230,7 @@ var debugHook = (function () {
 
     // GO!
     new Promise(resolve => $(document).ready(resolve))
+        .then(initGlobalKeyHandlers)
         .then(miscConfig.snapshots.autoUpdate.enable ? () => {
             notify.info("Starting update of SNAPSHOT list");
             return updateSnapshotList().reflect();
@@ -322,7 +330,7 @@ var debugHook = (function () {
                 .then(notify.closeInitProgressBar)
                 .then(() => {
                     initIdleHandlers(createIdleAction(swiper, slideContents));
-                    initKeyHandlers(swiper, slideContents);
+                    initSliderKeyHandlers(swiper, slideContents);
                     switchToSlider();
 
                     console.log(`loading took ${(performance.now() - startTime) / 1000.0}s`)
