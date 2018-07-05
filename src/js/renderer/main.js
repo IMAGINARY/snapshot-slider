@@ -140,17 +140,15 @@ var debugHook = (function () {
     }
 
     function switchToSlider() {
-        bootbox.hideAll();
         mode = "slider";
     }
 
     function switchToUpdateMode() {
         mode = "update";
-
         bootbox.confirm({
             title: 'Confirm update',
             message: '<p class="dialog">Are you sure that you want to update the list of available SNAPSHOTS?<p>',
-            callback: function (result) {
+            callback: result => {
                 if (result)
                     updateSnapshotList();
                 switchToSlider();
@@ -160,7 +158,7 @@ var debugHook = (function () {
 
     function switchToMailMode(snapshot) {
         mode = "mail";
-        bootbox.confirm({
+        $dialog = bootbox.confirm({
             title: 'Please enter your email address',
             message: '<p>Select one of the input fields to open the on screen keyboard. Click outside the on screen keyboard to hide it.</p><br /><p><div class="form-group"><label for="emailName">Name:</label><input type="text" class="keyboard form-control" id="emailName"></div><div class="form-group"><label for="emailAddress">Email:</label><input type="text" class="keyboard form-control" id="emailAddress"></div></p>',
             callback: result => {
@@ -174,8 +172,8 @@ var debugHook = (function () {
                 switchToSlider();
             }
         });
-        $("#emailName").keyboard();
-        $("#emailAddress").keyboard();
+        $dialog.find("#emailName").keyboard();
+        $dialog.find("#emailAddress").keyboard();
     }
 
     function switchToPrintMode(snapshot) {
