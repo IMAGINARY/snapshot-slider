@@ -32,9 +32,10 @@ var debugHook = (function () {
     let snapshots; // to be initialized after preprocessing the SNAPSHOT list
 
     const snapshotMailer = new SnapshotMailer(miscConfig.mail);
-    snapshotMailer.testConnection()
-        .then(() => notify.success('Mail server is ready to take messages', ""))
-        .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
+    if (miscConfig.mail.enable)
+        snapshotMailer.testConnection()
+            .then(() => notify.success('Mail server is ready to take messages', ""))
+            .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
 
     let mode;
 
