@@ -127,8 +127,8 @@ function _notify(icon, title, message, details, type) {
 
         detailsHTML =
             `
-                    <i class="fa fa-caret-down" aria-hidden="true" onClick="$('#collapsibleDetails${currId}').on('shown.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('show');$(this).css('display','none');$(this).next().css('display','');"></i>
-                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="$('#collapsibleDetails${currId}').on('hidden.bs.collapse',()=>_openNotifications[${currId}].update({}));$('#collapsibleDetails${currId}').collapse('hide');$(this).css('display','none');$(this).prev().css('display','');"></i>
+                    <i class="fa fa-caret-down" aria-hidden="true" onClick="__notify.$('#collapsibleDetails${currId}').on('shown.bs.collapse',()=>__notify._openNotifications[${currId}].update({}));__notify.$('#collapsibleDetails${currId}').collapse('show');__notify.$(this).css('display','none');__notify.$(this).next().css('display','');"></i>
+                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="__notify.$('#collapsibleDetails${currId}').on('hidden.bs.collapse',()=>__notify._openNotifications[${currId}].update({}));__notify.$('#collapsibleDetails${currId}').collapse('hide');__notify.$(this).css('display','none');__notify.$(this).prev().css('display','');"></i>
                     <div id="collapsibleDetails${currId}" class="collapse">
                         <pre class="notifyDetails">${details}</pre>
                     </div>
@@ -164,3 +164,8 @@ module.exports.success = (title, message, details) => _notify("fa fa-check-squar
 module.exports.info = (title, message, details) => _notify("fa fa-info-circle", title, message, details, "info");
 module.exports.warning = (title, message, details) => _notify("fa fa-exclamation-triangle", title, message, details, "warning");
 module.exports.error = (title, message, details) => _notify("fa fa-exclamation-circle", title, message, details, "danger");
+
+window.__notify = {
+    $: $,
+    _openNotifications: _openNotifications
+}; // TODO: remove global dependency on jQuery (needed for onClick in _notify)
