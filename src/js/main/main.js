@@ -19,15 +19,15 @@ const path = require('path');
 
 function getLinuxIcon() {
     if(process.mainModule.filename.indexOf('app.asar') === -1)
-        return path.resolve(__dirname, 'build', 'icon48x48.png');
+        return path.resolve(app.getAppPath(), 'build', 'icon48x48.png');
     else
-        return path.resolve(__dirname, '..', 'icon48x48.png');
+        return path.resolve(app.getAppPath(), '..', 'icon48x48.png');
 }
 
 // Add default values to current settings file
 function addDefaultSettings(settings) {
     const _ = require('lodash');
-    const defaults = require("./defaults.json");
+    const defaults = require("../../../defaults.json");
     settings.setAll(_.merge(defaults, settings.getAll()), {prettify: true});
 }
 
@@ -105,7 +105,7 @@ function createWindow(settings) {
     }
 
     // and load the index.html of the app.
-    mainWindow.loadURL('file://' + __dirname + '/index.html');
+    mainWindow.loadURL('file://' + app.getAppPath() + '/src/html/index.html');
 
     // Open the DevTools.
     if (settings.get("devTools"))

@@ -12,7 +12,7 @@
         "url": "https://github.com/IMAGINARY/snapshot-slider/issues",
         "email": "info@imaginary.org"
     },
-    "main": "main.js",
+    "main": "src/js/main/main.js",
     "keywords": [
         "SNAPSHOT",
         "Oberwolfach",
@@ -22,13 +22,13 @@
     ],
     "author": "IMAGINARY gGmbH <info@imaginary.org>",
     "license": "Apache-2.0",
-    "engines" : {
+    "engines": {
         "npm": ">=5.2.0"
     },
     "devDependencies": {
-        "yarn": "^1.7.0",
-        "electron": "^2.0.0",
-        "electron-builder": "^20.13.3"
+        "electron": "^2.0.4",
+        "electron-builder": "^20.19.1",
+        "yarn": "^1.7.0"
     },
     "dependencies": {
         "animate.css": "^3.5.2",
@@ -37,6 +37,7 @@
         "bootstrap": "^3.3.6",
         "bootstrap-notify": "^3.1.3",
         "bootstrap-progressbar": "^0.9.0",
+        "cachedir": "^2.0.0",
         "electron-settings": "^3.1.4",
         "font-awesome": "^4.6.3",
         "fs-extra": "^6.0.1",
