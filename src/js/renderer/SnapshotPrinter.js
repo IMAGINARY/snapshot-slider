@@ -3,6 +3,7 @@
 const { WritableStreamBuffer } = require('stream-buffers');
 const hummus = require('hummus');
 const printer = require('printer');
+const path = require('path');
 
 module.exports = class SnapshotPrinter {
 
