@@ -5,6 +5,9 @@ require('bootstrap');
 require('bootstrap-notify');
 const format = require('string-template');
 
+let initNotificationPromise;
+const _openNotifications = {};
+
 const progressTemplate = `
     <div>
         <div class="progress">
@@ -56,7 +59,6 @@ async function _createInitNotification() {
     }).then(["#progressCache", "#progressDocs", "#progressPages", "#progressRendered"].forEach(e => _updateInitProgressBarSync(e)));
 }
 
-let initNotificationPromise;
 function updateInitProgressBar(progressBar, data) {
     if (typeof initNotificationPromise === 'undefined')
         initNotificationPromise = _createInitNotification();
@@ -104,8 +106,6 @@ function closeInitProgressBar() {
         initNotificationPromise.then(initNotification => initNotification.close())
 }
 
-const _openNotifications = {};
-
 function _notify(icon, title, message, details, type) {
     this.id = typeof this.id === "undefined" ? this.id = 0 : this.id + 1;
     const currId = this.id;
@@ -118,21 +118,29 @@ function _notify(icon, title, message, details, type) {
         details: details
     });
 
-    let detailsHTML = "";
-    if (!(typeof details === "undefined")) {
-        if (details instanceof Error)
-            details = details.stack;
-        else if (details instanceof Object)
-            details = JSON.stringify(details, null, 2);
+    let messageHTML = "";
+    if (typeof message !== 'undefined') {
+        if (!(typeof details === 'undefined')) {
+            if (details instanceof Error)
+                details = details.stack;
+            else if (details instanceof Object)
+                details = JSON.stringify(details, null, 2);
 
-        detailsHTML =
-            `
-                    <i class="fa fa-caret-down" aria-hidden="true" onClick="__notify.$('#collapsibleDetails${currId}').on('shown.bs.collapse',()=>__notify._openNotifications[${currId}].update({}));__notify.$('#collapsibleDetails${currId}').collapse('show');__notify.$(this).css('display','none');__notify.$(this).next().css('display','');"></i>
-                    <i class="fa fa-caret-up" aria-hidden="true" style="display: none;" onClick="__notify.$('#collapsibleDetails${currId}').on('hidden.bs.collapse',()=>__notify._openNotifications[${currId}].update({}));__notify.$('#collapsibleDetails${currId}').collapse('hide');__notify.$(this).css('display','none');__notify.$(this).prev().css('display','');"></i>
-                    <div id="collapsibleDetails${currId}" class="collapse">
-                        <pre class="notifyDetails">${details}</pre>
-                    </div>
-                `.trim();
+            messageHTML = `
+            <div class="collapseable-content">
+                <div id="collapseable-details-${currId}" class="collapse" aria-expanded="false">
+                    <pre class="notifyDetails">${details}</pre>
+                </div>
+                <a href="#collapseable-details-${currId}" data-toggle="collapse">
+                    ${message}
+                    <i class="fa fa-caret-down" aria-hidden="true"></i>
+                    <i class="fa fa-caret-up" aria-hidden="true"></i>
+                </a>
+            </div>
+        `.trim();
+        } else {
+            messageHTML = message;
+        }
     }
 
     return new Promise(resolve => _openNotifications[currId] = $.notify({
@@ -164,8 +172,3 @@ module.exports.success = (title, message, details) => _notify("fa fa-check-squar
 module.exports.info = (title, message, details) => _notify("fa fa-info-circle", title, message, details, "info");
 module.exports.warning = (title, message, details) => _notify("fa fa-exclamation-triangle", title, message, details, "warning");
 module.exports.error = (title, message, details) => _notify("fa fa-exclamation-circle", title, message, details, "danger");
-
-window.__notify = {
-    $: $,
-    _openNotifications: _openNotifications
-}; // TODO: remove global dependency on jQuery (needed for onClick in _notify)
