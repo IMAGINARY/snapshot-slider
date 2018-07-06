@@ -146,7 +146,7 @@ function _notify(icon, title, message, details, type) {
     return new Promise(resolve => _openNotifications[currId] = $.notify({
         icon: icon,
         title: title,
-        message: typeof message === 'undefined' ? "" : message + detailsHTML
+        message: messageHTML
     }, {
         type: type,
         placement: {
