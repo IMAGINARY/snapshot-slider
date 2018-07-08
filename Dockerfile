@@ -19,7 +19,7 @@ ENV CC /usr/bin/gcc-4.8
 ENV CXX /usr/bin/g++-4.8
 
 # install yarn via npm (deprecated but easy)
-RUN npm install --global yarn@
+RUN npm install --global yarn@1.7.0
 
 # proceed with yarn
 # install nodejs dependencies and build redistributable packages

@@ -20,7 +20,7 @@ On Ubuntu 14.04 and above, you can try the following procedure:
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 sudo apt-get update
 sudo apt-get install nodejs git libcups2-dev
-sudo npm install --global yarn
+sudo npm install --global yarn@1.7.0
 git clone https://github.com/IMAGINRY/snapshot-slider
 cd snapshot-slider
 yarn install
