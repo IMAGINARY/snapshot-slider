@@ -13,6 +13,7 @@ var debugHook = (function () {
     $.migrateTrace = false;
     require(fromBaseDir('libs/jqbtk.js')); // extends jQuery, no further global side effects
     const bootbox = require('bootbox');
+    const keyboardJS = require('keyboardjs');
 
     // project imports
     const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
@@ -37,8 +38,6 @@ var debugHook = (function () {
             .then(() => notify.success('Mail server is ready to take messages', ""))
             .catch(error => notify.error('Connection to mail server failed', 'Please check the error message', error));
 
-    let mode;
-
     if (miscConfig.hideCursor) {
         const lastCSS = document.styleSheets[document.styleSheets.length - 1];
         lastCSS.insertRule("* { cursor: none; }", lastCSS.cssRules.length);
@@ -56,7 +55,7 @@ var debugHook = (function () {
     window.onresize();
 
     document.body.ondblclick = () => {
-        if (mode === "slider") {
+        if (keyboardJS.getContext() === "slider") {
             const win = remote.getCurrentWindow();
             const sx = win.getContentSize()[0] / 1920;
             const sy = win.getContentSize()[0] / 1080;
@@ -65,30 +64,26 @@ var debugHook = (function () {
         }
     };
     document.body.ondblclick();
-
+    
     function initGlobalKeyHandlers() {
-        const actions = {
-            "i": about,
-            "c": switchToClearCacheMode,
-            "r": () => window.location.reload(),
-        };
-        document.addEventListener('keydown', e => {
-            if (typeof actions[e.key] !== 'undefined')
-                actions[e.key]();
-        });
+        // bind to the window and document in the current window
+        keyboardJS.watch();
+
+        // global keyboard shortcuts
+        keyboardJS.bind("mod + i", about);
+        keyboardJS.bind("mod + r", () => window.location.reload());
     }
 
     function initSliderKeyHandlers(swiper, slideContents) {
-        const actions = {
-            "ArrowLeft": () => swiper.slidePrev(), // left arrow
-            "ArrowRight": () => swiper.slideNext(), // right arrow
-            "ArrowDown": () => slideContents[swiper.realIndex].nested.swiper.slideNext(), // down arrow
-            "ArrowUp": () => slideContents[swiper.realIndex].nested.swiper.slidePrev() // up arrow
-        };
-        actions[miscConfig.snapshots.autoUpdate.hotkey] = switchToUpdateMode;
-        document.addEventListener('keydown', e => {
-            if (mode === 'slider' && typeof actions[e.key] !== 'undefined')
-                actions[e.key]();
+        // context specific keyboard shortcuts
+        keyboardJS.withContext('slider', () => {
+            keyboardJS.bind("left", () => swiper.slidePrev()); // left arrow
+            keyboardJS.bind("right", () => swiper.slideNext()); // right arrow
+            keyboardJS.bind("down", () => slideContents[swiper.realIndex].nested.swiper.slideNext()); // down arrow
+            keyboardJS.bind("up", () => slideContents[swiper.realIndex].nested.swiper.slidePrev()); // up arrow
+
+            keyboardJS.bind("mod + c", switchToClearCacheMode);
+            keyboardJS.bind(miscConfig.snapshots.autoUpdate.hotkey, switchToUpdateMode);
         });
     }
 
@@ -142,11 +137,11 @@ var debugHook = (function () {
     }
 
     function switchToSlider() {
-        mode = "slider";
+        keyboardJS.setContext('slider');
     }
 
     function switchToClearCacheMode() {
-        mode = "clearCache";
+        keyboardJS.setContext('clearCache');
         bootbox.prompt({
             title: "Please select the cache folders to be deleted",
             value: "",
@@ -167,7 +162,7 @@ var debugHook = (function () {
     }
 
     function switchToUpdateMode() {
-        mode = "update";
+        keyboardJS.setContext('update');
         bootbox.confirm({
             title: 'Confirm update',
             message: '<p class="dialog">Are you sure that you want to update the list of available SNAPSHOTS?<p>',
@@ -180,7 +175,7 @@ var debugHook = (function () {
     }
 
     function switchToMailMode(snapshot) {
-        mode = "mail";
+        keyboardJS.setContext('mail');
         $dialog = bootbox.confirm({
             title: 'Please enter your email address',
             message: '<p>Select one of the input fields to open the on screen keyboard. Click outside the on screen keyboard to hide it.</p><br /><p><div class="form-group"><label for="emailName">Name:</label><input type="text" class="keyboard form-control" id="emailName"></div><div class="form-group"><label for="emailAddress">Email:</label><input type="text" class="keyboard form-control" id="emailAddress"></div></p>',
@@ -200,7 +195,7 @@ var debugHook = (function () {
     }
 
     function switchToPrintMode(snapshot) {
-        mode = "print";
+        keyboardJS.setContext('print');
         bootbox.confirm({
             title: 'Confirm printing',
             message: `<p class="dialog">Do you want to print: <em>"<b>${snapshot.metadata.authors.map(a => a.trim()).join(", ")}:</b> ${snapshot.metadata.title.trim()}"</em>?<p>`,

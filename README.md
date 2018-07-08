@@ -5,11 +5,13 @@ You can either control the slider via mouse or touch screen or by using the
 hotkeys <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd> and <kbd>↓</kbd>.
 
 Additional hotkeys are:
-- <kbd>u</kbd>: update the list of available SNAPSHOTs and reload
-- <kbd>i</kbd>: show simple About page
-- <kbd>r</kbd>: reload the slider without restarting the program (especially useful
+- <kbd>Mod</kbd>+<kbd>u</kbd>: update the list of available SNAPSHOTs and reload
+- <kbd>Mod</kbd>+<kbd>i</kbd>: show simple About page
+- <kbd>Mod</kbd>+<kbd>r</kbd>: reload the slider without restarting the program (especially useful
   during development)
-- <kbd>c</kbd>: clear cache directories
+- <kbd>Mod</kbd>+<kbd>c</kbd>: clear cache directories
+
+Where <kbd>Mod</kbd> is <kbd>Ctrl</kbd> on Linux and <kbd>Cmd</kbd> on macOS.
 
 ## How to build and run
 

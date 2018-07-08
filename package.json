@@ -47,6 +47,7 @@
         "jquery": "^3.3.1",
         "jquery-migrate": "^3.0.1",
         "jsonschema": "^1.1.1",
+        "keyboardjs": "^2.4.1",
         "lodash": "^4.17.10",
         "nodemailer": "^4.6.4",
         "pdfjs-dist": "^2.0.489",
