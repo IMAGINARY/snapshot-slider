@@ -100,8 +100,10 @@ body {
 .swiper-container-h {
     background: black;
     position: absolute;
-    width: 1920px;
+    left: calc( calc( 1920px - 2307px ) / 2 );
+    width: 2307px;
     height: 1080px;
+    overflow: hidden;
 }
 
 .swiper-container-v {
@@ -117,9 +119,23 @@ body {
     font-size: 21px;
 }
 
+.slide-wrapper {
+    height: 1080px;
+}
+
 .swiper-slide-v {
-    height: auto;
+    height: 1014px;
     font-size: 0;
+
+    /* center the page within the slide and hide possible overflow */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.swiper-slide-v img {
+    position: absolute;
 }
 
 .button-bar {
@@ -191,6 +207,7 @@ body {
     height: 56px;
 }
 
+/* BEGIN notifications */
 div[data-notify="container"] span[data-notify="title"] {
     font-weight: bold;
 }
@@ -203,7 +220,6 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
 .notifyDetails {
     max-height: 300px;
     margin-top: 5px;
-    margin-bottom: 5px;
     padding: 5px;
     border-radius: 4px;
     background-color: white;
@@ -233,6 +249,14 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
     font-style: italic;
 }
 
+.collapseable-content { display: flex; flex-direction: column; }
+.collapseable-content > :not(a) { order: 2;}
+.collapseable-content > a { order: 1; text-decoration: none; color:inherit; }
+.collapseable-content > [aria-expanded=true] + a > i.fa-caret-down { display: none; }
+.collapseable-content > [aria-expanded=false] + a > i.fa-caret-up { display: none; }
+
+/* END notifications */
+
 .loader {
     z-index: 1;
     position: absolute;
@@ -250,4 +274,19 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/******/
+@keyframes nodeInserted {
+    from {
+        outline-color: #fff;
+    }
+    to {
+        outline-color: #000;
+    }
+}
+
+.node-inserted {
+    animation-duration: 0.01s;
+    animation-name: nodeInserted;
 }
