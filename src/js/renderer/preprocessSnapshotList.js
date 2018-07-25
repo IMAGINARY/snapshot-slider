@@ -1,8 +1,8 @@
 const {cloneDeep} = require('lodash');
 
-module.exports = function preprocessSnapshotList(snapshotConfig) {
+module.exports = function preprocessSnapshotList(snapshotConfig,snapshotList) {
     // clone original list
-    let articles = cloneDeep(snapshotConfig.articles);
+    let articles = cloneDeep(snapshotList);
 
     // sort
     if (snapshotConfig.sort.enable) {

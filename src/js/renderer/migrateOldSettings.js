@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs-extra');
+const _ = require('lodash');
 
 const utils = require('./utils.js');
 
@@ -19,4 +20,12 @@ module.exports = function migrateOldSettings() {
 
     // delete cached PNGs (can be reconstructed offline)
     fs.removeSync(oldPngCacheDirname);
+
+    // remove SNAPSHOT list from settings
+    const settingsPath = utils.getPath('Settings');
+    const settingsJSON = fs.readJsonSync(settingsPath, {throws: false});
+    if (settingsJSON != null) {
+        _.unset(settingsJSON, 'snapshots.articles');
+        fs.writeJsonSync(settingsPath, settingsJSON, {spaces: 4});
+    }
 };

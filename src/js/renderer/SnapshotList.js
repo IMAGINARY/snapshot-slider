@@ -3,6 +3,22 @@
 const request = require('request');
 const semver = require('semver');
 const validateJSON = require('jsonschema').validate;
+const fs = require('fs-extra');
+
+const utils = require('./utils.js');
+
+async function get() {
+    try {
+        const articles = await fs.readJson(utils.getPath('snapshots.json'), {throws: false});
+        return validate(articles) ? articles : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function set(articles) {
+    return fs.writeJsonSync(utils.getPath('snapshots.json'), articles, {spaces: 4});
+}
 
 class UpdateError extends Error {
     constructor(errorCode, cause, ...params) {
@@ -26,7 +42,7 @@ UpdateError.ERROR_VERSION_MISMATCH = 2;
 UpdateError.ERROR_VALIDATION_FAILED = 3;
 
 async function update(updateUrl) {
-    return new Promise((resolve,reject) => {
+    return new Promise((resolve, reject) => {
         request.get({
             url: updateUrl,
         }, (err, res, body) => {
@@ -39,15 +55,28 @@ async function update(updateUrl) {
                 if (json.version && !semver.satisfies(json.version, expectedSemVer)) {
                     reject(new UpdateError(UpdateError.ERROR_VERSION_MISMATCH, `Expected: ${expectedSemVer}\nSupplied: ${json.version}`));
                 } else {
-                    const validationResult = validateJSON(json, schema);
+                    const validationResult = _validate(json, schema);
                     if (validationResult.valid)
-                        resolve(json);
+                        resolve(json.snapshots);
                     else
                         reject(new UpdateError(UpdateError.ERROR_VALIDATION_FAILED, validationResult.errors));
                 }
             }
         });
     });
+}
+
+function isValid(json) {
+    return validate(json).valid;
+}
+
+function _validate(json) {
+    return validateJSON(json, schema);
+}
+
+function validate(json) {
+    // wrap into a JSON object containing a version string
+    return _validate({version: "", snapshots: json});
 }
 
 const expectedSemVer = '^1.0.0';
@@ -108,5 +137,9 @@ const schema = {
 
 module.exports = {
     UpdateError: UpdateError,
+    get: get,
+    set: set,
     update: update,
+    validate: validate,
+    isValid: isValid,
 };

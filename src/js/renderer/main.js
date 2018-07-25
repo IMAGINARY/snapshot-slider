@@ -19,7 +19,7 @@ var debugHook = (function () {
     const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
     const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
     const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
-    const SnapshotListUpdater = require(fromBaseDir('src/js/renderer/SnapshotListUpdater.js'));
+    const SnapshotList = require(fromBaseDir('src/js/renderer/SnapshotList.js'));
     const SliderInitializer = require(fromBaseDir('src/js/renderer/SliderInitializer.js'));
     const notify = require(fromBaseDir('src/js/renderer/notify.js'));
     const preprocessSnapshotList = require(fromBaseDir('src/js/renderer/preprocessSnapshotList.js'));
@@ -64,7 +64,7 @@ var debugHook = (function () {
         }
     };
     document.body.ondblclick();
-    
+
     function initGlobalKeyHandlers() {
         // bind to the window and document in the current window
         keyboardJS.watch();
@@ -219,25 +219,23 @@ var debugHook = (function () {
         const successNotificationTitle = "Update of SNAPSHOT list successful";
 
         try {
-            const newSnapshotList = await SnapshotListUpdater.update(miscConfig.snapshots.autoUpdate.url);
-            if (_.isEqual(newSnapshotList.snapshots, miscConfig.snapshots.articles)) {
+            const newSnapshotList = await SnapshotList.update(miscConfig.snapshots.autoUpdate.url);
+            if (_.isEqual(newSnapshotList, await SnapshotList.get())) {
                 notify.success(successNotificationTitle, "No change detected.", newSnapshotList);
             } else {
-                settings.set("snapshots.articles", newSnapshotList.snapshots, {
-                    prettify: true
-                });
-                notify.success(successNotificationTitle, "Reloading …", newSnapshotList)
+                SnapshotList.set(newSnapshotList)
+                    .then(() => notify.success(successNotificationTitle, "Reloading …", newSnapshotList))
                     .then(() => location.reload());
             }
         } catch (error) {
             switch (error.errorCode) {
-                case SnapshotListUpdater.UpdateError.ERROR_DOWNLOAD_FAILED:
+                case SnapshotList.UpdateError.ERROR_DOWNLOAD_FAILED:
                     notify.error(errorNotificationTitle, "The list could not be downloaded.", error.cause);
                     break;
-                case SnapshotListUpdater.UpdateError.ERROR_VERSION_MISMATCH:
+                case SnapshotList.UpdateError.ERROR_VERSION_MISMATCH:
                     notify.error(errorNotificationTitle, "Online data has wrong version tag.", error.cause);
                     break;
-                case SnapshotListUpdater.UpdateError.ERROR_VALIDATION_FAILED:
+                case SnapshotList.UpdateError.ERROR_VALIDATION_FAILED:
                     notify.error(errorNotificationTitle, "The downloaded list is invalid.", error.cause);
                     break;
             }
@@ -253,6 +251,12 @@ var debugHook = (function () {
         } : Promise.resolve())
         .then(async () => {
             const startTime = performance.now();
+            const allArticles = await SnapshotList.get();
+            if(allArticles == null) {
+                notify.info("Updating SNAPSHOT list","No or invalid SNAPSHOT list found");
+                updateSnapshotList();
+                return;
+            }
             const articles = preprocessSnapshotList(miscConfig.snapshots,allArticles);
             snapshots = articles.map(article => new Snapshot(article, {
                 pdfCacheDir: utils.getPath('pdfCache'),

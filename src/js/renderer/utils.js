@@ -14,6 +14,8 @@ function getPath(name) {
             return path.join(getPath('cache'),'png');
         case 'Settings':
             return path.join(getPath('userData'),'Settings');
+        case 'snapshots.json':
+            return path.join(getPath('cache'),'snapshots.json');
         default:
             return app.getPath(name);
     }
