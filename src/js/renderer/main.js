@@ -253,9 +253,10 @@ var debugHook = (function () {
         } : Promise.resolve())
         .then(async () => {
             const startTime = performance.now();
-            const articles = preprocessSnapshotList(miscConfig.snapshots);
+            const articles = preprocessSnapshotList(miscConfig.snapshots,allArticles);
             snapshots = articles.map(article => new Snapshot(article, {
-                cacheDir: utils.getPath('cache'),
+                pdfCacheDir: utils.getPath('pdfCache'),
+                pngCacheDir: utils.getPath('pngCache'),
                 defaultWidth: 717,
                 defaultHeight: 1014
             }));

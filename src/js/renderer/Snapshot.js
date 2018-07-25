@@ -19,12 +19,11 @@ module.exports = class Snapshot {
             isFrontPage: metadata.isFrontPage,
         }
 
-        this._cacheDir = options.cacheDir;
         this._defaultWidth = options.defaultWidth;
         this._defaultHeight = options.defaultHeight;
 
-        this._pdfCacheDir = path.join(this._cacheDir, 'pdf');
-        this._pngCacheDir = path.join(this._cacheDir, 'png');
+        this._pdfCacheDir = options.pdfCacheDir;
+        this._pngCacheDir = options.pngCacheDir;
 
 
         this._pngCachePrefix = path.join(this._pngCacheDir, this.metadata.sha256);
