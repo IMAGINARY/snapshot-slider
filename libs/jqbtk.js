@@ -45,8 +45,8 @@
         var keyboardShift=false;
 
         // Listen for keypresses
-		$(document).off('touchstart mousedown','.jqbtk-row .btn');
-        $(document).on('touchstart mousedown','.jqbtk-row .btn',function(e){
+		$(document).off('pointerdown','.jqbtk-row .btn');
+        $(document).on('pointerdown','.jqbtk-row .btn',function(e){
             //e.preventDefault();
             $(this).addClass(settings.btnActiveClasses);
             var keyContent=$(this).attr('data-value'+(keyboardShift?'-alt':''));
@@ -71,11 +71,11 @@
             keyboardShiftify();
             parent.focus();
         });
-        $(document).on('touchend mouseup','.jqbtk-row .btn',function(){
+        $(document).on('pointerout','.jqbtk-row .btn',function(){
             $(this).removeClass(settings.btnActiveClasses);
         });
         // Prevent clicks on the popover from cancelling the focus
-        $(document).on('touchstart mousedown','.jqbtk-row',function(e){
+        $(document).on('pointerdown','.jqbtk-row',function(e){
             e.preventDefault();
             var parent=$('[aria-describedby='+$(this).closest('.popover').attr('id')+']');
             parent.focus();
