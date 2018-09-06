@@ -290,3 +290,12 @@ div[data-notify="container"] span[data-notify="message"]:not(:empty) {
     animation-duration: 0.01s;
     animation-name: nodeInserted;
 }
+
+.form-group {
+    display: inline-block;
+    width: calc( 50% - 5px );
+}
+
+.form-group + .form-group {
+    margin-left: 10px;
+}
