@@ -26,6 +26,7 @@ module.exports.createTopLevelSlider = async function (snapshots, options) {
         loopedSlides: snapshots.length,
         freeModeSticky: true,
         freeModeMomentumRatio: 0.25,
+        freeModeMinimumVelocity: 0.1,
         mousewheel: {forceToAxis: true, invert: true},
         centeredSlides: true
     };
@@ -161,6 +162,7 @@ async function createNestedSlider(snapshot) {
         spaceBetween: 4,
         freeMode: true,
         freeModeSticky: true,
+        freeModeMinimumVelocity: 0.1,
         mousewheel: {forceToAxis: true, invert: true},
         controlBy: 'container'
     };
