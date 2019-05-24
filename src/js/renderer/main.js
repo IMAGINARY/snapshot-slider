@@ -17,7 +17,7 @@ var debugHook = (function () {
 
     // project imports
     const Snapshot = require(fromBaseDir('src/js/renderer/Snapshot.js'));
-    const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
+//    const SnapshotPrinter = require(fromBaseDir('src/js/renderer/SnapshotPrinter.js'));
     const SnapshotMailer = require(fromBaseDir('src/js/renderer/SnapshotMailer.js'));
     const SnapshotList = require(fromBaseDir('src/js/renderer/SnapshotList.js'));
     const SliderInitializer = require(fromBaseDir('src/js/renderer/SliderInitializer.js'));

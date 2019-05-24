@@ -44,6 +44,7 @@ function createWindow(settings) {
     const options = {
         width: 1920 / 2,
         height: 1080 / 2,
+        webPreferences: { nodeIntegration: true },
         backgroundColor: '#000000',
         kiosk: settings.get("kiosk"),
         fullscreen: settings.get("fullscreen"),
