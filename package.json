@@ -28,7 +28,7 @@
     "devDependencies": {
         "electron": "^2.0.4",
         "electron-builder": "^20.19.1",
-        "yarn": "^1.7.0"
+        "yarn": "^1.17.3"
     },
     "dependencies": {
         "animate.css": "^3.5.2",
