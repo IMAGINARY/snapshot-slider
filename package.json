@@ -49,7 +49,7 @@
         "jsonschema": "^1.1.1",
         "keyboardjs": "^2.4.1",
         "lodash": "^4.17.10",
-        "nodemailer": "^4.6.4",
+        "nodemailer": "^6.4.16",
         "pdfjs-dist": "^2.0.489",
         "printer": "^0.2.2",
         "qr-image": "^3.1.0",
