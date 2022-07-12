@@ -1,0 +1,67 @@
+<html>
+</head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<style>
+.v-slide {
+    position: absolute;
+    width: 500px;
+    left: calc(50% - 250px);
+    height: 100%;
+    background-color: gray;
+}
+
+.button-bar {
+    position: absolute;
+    bottom: 0px;
+    height: 60px;
+    width: 100%;
+    border-top: 4px;
+    background-color: red;
+}
+
+.button-bar > * {
+    position: absolute;
+}
+
+.button-bar > i {
+    font-size: 1vh;
+}
+
+.button-bar > #a {
+    top: 0px;
+}
+
+.button-bar > #b {
+    bottom: 0px;
+}
+
+.button-bar > img {
+    right: 0px;
+}
+
+</style>
+<link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.css">
+</head>
+<body>
+    <div class="v-slide">
+        <svg>
+          <use xlink:href="../node_modules/font-awesome/fonts/fontawesome-webfont.svg#facebook"></use>
+        </svg>
+        <div class="button-bar">
+            <i id="a">a</i>
+            <i id="b">b</i>
+            <img height="100%" src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Test.svg" />
+        </div>
+    </div>
+</body>
+</html>
+    
