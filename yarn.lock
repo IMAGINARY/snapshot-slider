@@ -1654,9 +1654,9 @@ https-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
 
-hummus@^1.0.87:
-  version "1.0.87"
-  resolved "https://registry.yarnpkg.com/hummus/-/hummus-1.0.87.tgz#41294a54fb825747f535b43c4a5ea31ada20dd33"
+hummus@^1.0.111:
+  version "1.0.111"
+  resolved "https://registry.yarnpkg.com/hummus/-/hummus-1.0.111.tgz#5056ae00e2361152667acc0a87c4cd3f3de3de51"
   dependencies:
     node-pre-gyp "^0.10.0"
 
